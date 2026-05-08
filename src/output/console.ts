@@ -1,12 +1,19 @@
 import chalk from "chalk";
-import type { CliContext } from "../types/cli.js";
+import type { HttpResult } from "../types/cli.js";
 
-export function printPlaceholderResponse(context: CliContext): void {
+export function printHttpResult(result: HttpResult): void {
+  if (!result.ok) {
+    printCliError(result.errorMessage);
+    return;
+  }
+
   console.log(chalk.cyan("FetchUp CLI"));
-  console.log(chalk.gray("Command recognized successfully."));
-  console.log(`${chalk.bold("Method")}  ${context.command.toUpperCase()}`);
-  console.log(`${chalk.bold("URL")}     ${context.url}`);
-  console.log(chalk.yellow("HTTP execution will be added in the next branch."));
+  console.log(`${chalk.bold("Method")}  ${result.method}`);
+  console.log(`${chalk.bold("URL")}     ${result.url}`);
+  console.log(`${chalk.bold("Status")}  ${result.response.status} ${result.response.statusText}`);
+  console.log(`${chalk.bold("Headers")} ${Object.keys(result.response.headers).length}`);
+  console.log(chalk.gray("Body:"));
+  console.log(result.response.body);
 }
 
 export function printCliError(message: string): void {
