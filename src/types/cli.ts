@@ -24,6 +24,7 @@ export interface HttpResponseData {
   statusText: string;
   headers: Record<string, string>;
   body: string;
+  durationMs: number;
 }
 
 export interface HttpSuccessResult {
