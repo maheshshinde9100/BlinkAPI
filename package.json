@@ -1,19 +1,32 @@
 {
   "name": "fetchup",
-  "version": "1.0.0",
-  "description": "<div align=\"center\">",
-  "main": "index.js",
+  "version": "0.1.0",
+  "description": "A lightweight terminal-native API testing tool.",
+  "main": "dist/index.js",
+  "bin": {
+    "fetchup": "dist/index.js"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/maheshshinde9100/FetchUp.git"
   },
   "keywords": [],
-  "author": "",
+  "author": "Mahesh Shinde",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
   "bugs": {
     "url": "https://github.com/maheshshinde9100/FetchUp/issues"
   },
@@ -23,5 +36,12 @@
     "commander": "^14.0.3",
     "dotenv": "^17.4.2",
     "js-yaml": "^4.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.2",
+    "tsup": "^8.5.1",
+    "tsx": "^4.20.6",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.5"
   }
 }
