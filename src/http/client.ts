@@ -9,6 +9,7 @@ export async function executeHttpRequest(input: HttpRequestInput): Promise<HttpR
     const response = await fetch(input.url, {
       method: input.method,
       body: input.body,
+      headers: input.headers,
     });
 
     return {
