@@ -2,7 +2,7 @@
 
 # ⚡ FetchUp
 
-**A lightweight, terminal-native API testing tool for developers.**
+**A lightweight terminal REST client for developers.**
 
 Fast. Scriptable. Git-friendly.
 
@@ -10,7 +10,7 @@ Fast. Scriptable. Git-friendly.
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D18.x-brightgreen)](https://nodejs.org/)
 
-> This project is just getting started. Nothing is production-ready yet — this README reflects the idea and direction, not a finished tool.
+> MVP is implemented and usable from terminal.
 
 </div>
 
@@ -31,24 +31,15 @@ That's it. No fancy UI. No cloud sync. Just a fast, simple terminal tool.
 
 ---
 
-## What I Want to Build
+## Current Features
 
-Here's the rough list of things I'm planning — in the order I'll probably tackle them:
-
-- [ ] Basic CLI — run `fetchup get <url>` and see a response
-- [ ] Support all common HTTP methods — GET, POST, PUT, PATCH, DELETE
-- [ ] Send headers and JSON body from the command line
-- [ ] Pretty-print the response (status code, headers, body)
-- [ ] Load variables from a `.env` file
-- [ ] Save a request to a `.yaml` or `.json` file and re-run it later
-- [ ] Switch environments with a flag like `--env staging`
-- [ ] Publish the package on npm so others can `npm install -g fetchup`
-
-Things I'd *like* to explore later (no promises):
-
-- [ ] Chain multiple requests together
-- [ ] Basic assertions — check if a response has a certain status or field
-- [ ] Import a Postman collection and run it
+- [x] CLI command system (`get`, `post`, `put`, `patch`, `delete`)
+- [x] Real HTTP requests with native `fetch`
+- [x] Custom request headers (`-H`, `--header`)
+- [x] JSON request body (`-j`, `--json`) for write methods
+- [x] Structured response output (status, time, headers, body)
+- [x] Environment variable placeholders in URLs (`{{API_BASE_URL}}`)
+- [x] TypeScript project structure with modular layers
 
 ---
 
@@ -63,59 +54,82 @@ Keeping it simple — just Node.js, TypeScript, and a few well-known packages.
 | CLI parsing | [`commander`](https://www.npmjs.com/package/commander) | Easy way to define commands and flags |
 | Terminal colors | [`chalk`](https://www.npmjs.com/package/chalk) | Makes the output actually readable |
 | `.env` support | [`dotenv`](https://www.npmjs.com/package/dotenv) | Load environment variables from a file |
-| YAML support | [`js-yaml`](https://www.npmjs.com/package/js-yaml) | Read/write saved request collection files |
-| Build tool | [`tsup`](https://tsup.egoist.dev/) | Bundle TypeScript to JS for npm publishing |
+| Build tool | [`typescript`](https://www.typescriptlang.org/) | Compile source to runnable CLI output |
 | Testing | [`vitest`](https://vitest.dev/) | Simple and fast — I'll add tests as I go |
 
 ---
 
-## Folder Structure (What I'm Starting With)
+## Folder Structure
 
 ```
 fetchup/
 ├── src/
-│   ├── index.ts          # CLI entry point
-│   ├── commands/
-│   │   └── request.ts    # Handle get, post, etc.
+│   ├── index.ts
+│   ├── cli/
+│   │   ├── program.ts
+│   │   ├── registerCommands.ts
+│   │   ├── commandDefinitions.ts
+│   │   └── commands/
+│   │       └── request.ts
+│   ├── http/
+│   │   └── client.ts
 │   ├── output/
-│   │   └── formatter.ts  # Pretty-print responses
-│   └── env/
-│       └── loader.ts     # Load .env and resolve variables
+│   │   └── console.ts
+│   ├── env/
+│   │   └── resolver.ts
+│   └── utils/
+│       ├── requestOptions.ts
+│       ├── validators.ts
+│       └── errors.ts
 ├── tests/
+│   ├── envResolver.test.ts
+│   ├── httpClient.test.ts
+│   └── requestOptions.test.ts
 ├── .env.example
 ├── package.json
 ├── tsconfig.json
 └── README.md
 ```
 
-I'll grow this as I add more features.
-
 ---
 
-## How to Run Locally (Once I Have Something Working)
+## How to Run Locally
 
 ```bash
 git clone https://github.com/maheshshinde9100/FetchUp.git
 cd FetchUp
 npm install
 npm run build
-npm link
 
 # Then try:
-fetchup get https://jsonplaceholder.typicode.com/posts/1
+node dist/index.js get https://jsonplaceholder.typicode.com/posts/1
+node dist/index.js post https://jsonplaceholder.typicode.com/posts --json '{"title":"foo"}'
+node dist/index.js get "{{API_BASE_URL}}/posts/1"
+```
+
+Create a `.env` file in the project root when you want environment interpolation:
+
+```bash
+API_BASE_URL=https://jsonplaceholder.typicode.com
+```
+
+Run tests:
+
+```bash
+npm test
 ```
 
 ---
 
-## npm Publishing Plan
+## npm Publishing (Planned)
 
-Once the basic version is working, I plan to publish it as a global npm package:
+Once final packaging is complete, FetchUp can be published as a global npm package:
 
 ```bash
 npm install -g fetchup
 ```
 
-The goal is to make the package small, dependency-light, and installable with a single command.
+The goal is to keep it small, dependency-light, and installable with one command.
 
 ---
 
