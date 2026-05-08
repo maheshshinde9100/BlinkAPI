@@ -10,13 +10,13 @@ Fast. Scriptable. Git-friendly.
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D18.x-brightgreen)](https://nodejs.org/)
 
-> 🚧 This project is just getting started. Nothing is production-ready yet — this README reflects the idea and direction, not a finished tool.
+> This project is just getting started. Nothing is production-ready yet — this README reflects the idea and direction, not a finished tool.
 
 </div>
 
 ---
 
-## 💡 The Idea
+## The Idea
 
 I got tired of opening Postman just to fire a quick API request. It's heavy, it's slow, and it's overkill for most things I do day-to-day.
 
@@ -31,7 +31,7 @@ That's it. No fancy UI. No cloud sync. Just a fast, simple terminal tool.
 
 ---
 
-## 🎯 What I Want to Build
+## What I Want to Build
 
 Here's the rough list of things I'm planning — in the order I'll probably tackle them:
 
@@ -52,7 +52,7 @@ Things I'd *like* to explore later (no promises):
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 Keeping it simple — just Node.js, TypeScript, and a few well-known packages.
 
@@ -69,7 +69,7 @@ Keeping it simple — just Node.js, TypeScript, and a few well-known packages.
 
 ---
 
-## 📁 Folder Structure (What I'm Starting With)
+## Folder Structure (What I'm Starting With)
 
 ```
 fetchup/
@@ -92,7 +92,7 @@ I'll grow this as I add more features.
 
 ---
 
-## 🚀 How to Run Locally (Once I Have Something Working)
+## How to Run Locally (Once I Have Something Working)
 
 ```bash
 git clone https://github.com/maheshshinde9100/FetchUp.git
@@ -107,7 +107,7 @@ fetchup get https://jsonplaceholder.typicode.com/posts/1
 
 ---
 
-## 📦 npm Publishing Plan
+## npm Publishing Plan
 
 Once the basic version is working, I plan to publish it as a global npm package:
 
@@ -119,13 +119,13 @@ The goal is to make the package small, dependency-light, and installable with a 
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 This is a personal project and very early stage — but if you have ideas, suggestions, or want to help, feel free to open an issue or PR on [GitHub](https://github.com/maheshshinde9100/FetchUp).
 
 ---
 
-## 📄 License
+## License
 
 [MIT](LICENSE)
 
