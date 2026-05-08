@@ -39,12 +39,92 @@ function parseJsonBody(jsonBody?: string): string | undefined {
     return undefined;
   }
 
+  const normalizedInput = unwrapWrappedQuotes(jsonBody.trim());
+
   try {
-    const parsed = JSON.parse(jsonBody);
+    const parsed = JSON.parse(normalizedInput);
     return JSON.stringify(parsed);
   } catch {
+    const fallback = tryParseLooseObject(normalizedInput);
+    if (fallback !== undefined) {
+      return JSON.stringify(fallback);
+    }
+
     throw new Error("Invalid JSON body. Please provide a valid JSON string.");
   }
+}
+
+function unwrapWrappedQuotes(input: string): string {
+  if (
+    (input.startsWith('"') && input.endsWith('"')) ||
+    (input.startsWith("'") && input.endsWith("'"))
+  ) {
+    return input.slice(1, -1);
+  }
+
+  return input;
+}
+
+function parseLooseValue(rawValue: string): unknown {
+  const value = rawValue.trim();
+  if (!value) {
+    return "";
+  }
+
+  if (
+    (value.startsWith('"') && value.endsWith('"')) ||
+    (value.startsWith("'") && value.endsWith("'"))
+  ) {
+    return value.slice(1, -1);
+  }
+
+  if (value === "true") {
+    return true;
+  }
+  if (value === "false") {
+    return false;
+  }
+  if (value === "null") {
+    return null;
+  }
+
+  const numericValue = Number(value);
+  if (!Number.isNaN(numericValue)) {
+    return numericValue;
+  }
+
+  return value;
+}
+
+function tryParseLooseObject(input: string): Record<string, unknown> | undefined {
+  const trimmed = input.trim();
+  const hasBraces = trimmed.startsWith("{") && trimmed.endsWith("}");
+  const body = hasBraces ? trimmed.slice(1, -1).trim() : trimmed;
+  if (!body) {
+    return {};
+  }
+
+  const result: Record<string, unknown> = {};
+  const parts = body.split(",");
+
+  for (const part of parts) {
+    const separatorIndex = part.indexOf(":");
+    if (separatorIndex === -1) {
+      return undefined;
+    }
+
+    const rawKey = part.slice(0, separatorIndex).trim();
+    const rawValue = part.slice(separatorIndex + 1).trim();
+
+    const key = rawKey.replace(/^['"]|['"]$/g, "").trim();
+    if (!key) {
+      return undefined;
+    }
+
+    result[key] = parseLooseValue(rawValue);
+  }
+
+  return result;
 }
 
 export function parseRequestOptions(input: {
