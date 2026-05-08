@@ -9,13 +9,14 @@ export interface CliContext {
 
 export interface CommandHandlerInput {
   url: string;
-  body?: string;
+  headers?: string[];
 }
 
 export interface HttpRequestInput {
   method: HttpMethod;
   url: string;
   body?: string;
+  headers?: Record<string, string>;
 }
 
 export interface HttpResponseData {
@@ -23,6 +24,7 @@ export interface HttpResponseData {
   statusText: string;
   headers: Record<string, string>;
   body: string;
+  durationMs: number;
 }
 
 export interface HttpSuccessResult {
@@ -44,5 +46,6 @@ export type HttpResult = HttpSuccessResult | HttpFailureResult;
 export interface CommandExecutionContext {
   method: HttpMethod;
   url: string;
-  body?: string;
+  headers?: string[];
+  jsonBody?: string;
 }

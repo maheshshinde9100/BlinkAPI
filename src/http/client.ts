@@ -5,10 +5,13 @@ function buildHeaderMap(headers: Headers): Record<string, string> {
 }
 
 export async function executeHttpRequest(input: HttpRequestInput): Promise<HttpResult> {
+  const startedAt = Date.now();
+
   try {
     const response = await fetch(input.url, {
       method: input.method,
       body: input.body,
+      headers: input.headers,
     });
 
     return {
@@ -20,6 +23,7 @@ export async function executeHttpRequest(input: HttpRequestInput): Promise<HttpR
         statusText: response.statusText,
         headers: buildHeaderMap(response.headers),
         body: await response.text(),
+        durationMs: Date.now() - startedAt,
       },
     };
   } catch (error) {
