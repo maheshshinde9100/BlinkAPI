@@ -2,6 +2,7 @@ import { executeHttpRequest } from "../../http/client.js";
 import { resolveUrlWithEnv } from "../../env/resolver.js";
 import { printCliError, printHttpResult } from "../../output/console.js";
 import type { CommandExecutionContext } from "../../types/cli.js";
+import { getErrorMessage } from "../../utils/errors.js";
 import { parseRequestOptions } from "../../utils/requestOptions.js";
 import { isLikelyUrl } from "../../utils/validators.js";
 
@@ -10,7 +11,7 @@ export async function handleRequestCommand(context: CommandExecutionContext): Pr
   try {
     resolvedUrl = resolveUrlWithEnv(context.url);
   } catch (error) {
-    printCliError(error instanceof Error ? error.message : "Failed to resolve environment variables.");
+    printCliError(getErrorMessage(error, "Failed to resolve environment variables."));
     process.exitCode = 1;
     return;
   }
@@ -29,7 +30,7 @@ export async function handleRequestCommand(context: CommandExecutionContext): Pr
       jsonBody: context.jsonBody,
     });
   } catch (error) {
-    printCliError(error instanceof Error ? error.message : "Invalid request options.");
+    printCliError(getErrorMessage(error, "Invalid request options."));
     process.exitCode = 1;
     return;
   }
