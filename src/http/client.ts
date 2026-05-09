@@ -1,24 +1,21 @@
+import axios, { AxiosError } from "axios";
 import type { HttpRequestInput, HttpResult } from "../types/cli.js";
-
-function buildHeaderMap(headers: Headers): Record<string, string> {
-  return Object.fromEntries(headers.entries());
-}
 
 export async function executeHttpRequest(input: HttpRequestInput): Promise<HttpResult> {
   const startedAt = Date.now();
 
   try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000);
-
-    const response = await fetch(input.url, {
+    const response = await axios({
       method: input.method,
-      body: input.body,
+      url: input.url,
+      data: input.body,
       headers: input.headers,
-      signal: controller.signal,
+      timeout: 30000,
+      // We want to handle non-2xx statuses ourselves to match the previous behavior
+      validateStatus: () => true,
+      // Get the response as a string to match previous behavior
+      responseType: "text",
     });
-
-    clearTimeout(timeoutId);
 
     return {
       ok: true,
@@ -27,17 +24,30 @@ export async function executeHttpRequest(input: HttpRequestInput): Promise<HttpR
       response: {
         status: response.status,
         statusText: response.statusText,
-        headers: buildHeaderMap(response.headers),
-        body: await response.text(),
+        // Axios headers are an object or an AxiosHeaders instance
+        headers: response.headers as Record<string, string>,
+        body: response.data,
         durationMs: Date.now() - startedAt,
       },
     };
   } catch (error) {
+    let errorMessage = "Unknown network error.";
+    
+    if (axios.isAxiosError(error)) {
+      if (error.code === "ECONNABORTED") {
+        errorMessage = "Request timed out (30s).";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+    } else if (error instanceof Error) {
+      errorMessage = error.message;
+    }
+
     return {
       ok: false,
       method: input.method,
       url: input.url,
-      errorMessage: error instanceof Error ? error.message : "Unknown network error.",
+      errorMessage,
     };
   }
 }
