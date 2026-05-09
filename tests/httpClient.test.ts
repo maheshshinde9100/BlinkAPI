@@ -1,24 +1,24 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { executeHttpRequest } from "../src/http/client.js";
+import axios from "axios";
+
+vi.mock("axios");
 
 describe("executeHttpRequest", () => {
   afterEach(() => {
-    vi.unstubAllGlobals();
+    vi.clearAllMocks();
   });
 
   it("returns structured success result", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async () => {
-        return new Response('{"ok":true}', {
-          status: 200,
-          statusText: "OK",
-          headers: {
-            "content-type": "application/json",
-          },
-        });
-      }),
-    );
+    const mockedAxios = vi.mocked(axios);
+    mockedAxios.mockResolvedValueOnce({
+      status: 200,
+      statusText: "OK",
+      headers: {
+        "content-type": "application/json",
+      },
+      data: '{"ok":true}',
+    });
 
     const result = await executeHttpRequest({
       method: "GET",
@@ -35,12 +35,8 @@ describe("executeHttpRequest", () => {
   });
 
   it("returns structured failure result", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async () => {
-        throw new Error("fetch exploded");
-      }),
-    );
+    const mockedAxios = vi.mocked(axios);
+    mockedAxios.mockRejectedValueOnce(new Error("axios exploded"));
 
     const result = await executeHttpRequest({
       method: "GET",
@@ -49,7 +45,7 @@ describe("executeHttpRequest", () => {
 
     expect(result.ok).toBe(false);
     if (!result.ok) {
-      expect(result.errorMessage).toBe("fetch exploded");
+      expect(result.errorMessage).toBe("axios exploded");
       expect(result.method).toBe("GET");
     }
   });
