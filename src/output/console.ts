@@ -21,7 +21,7 @@ function formatBody(body: string): string {
   }
 }
 
-export function printHttpResult(result: HttpResult): void {
+export function printHttpResult(result: HttpResult, verbose: boolean = false): void {
   if (!result.ok) {
     printCliError(result.errorMessage);
     return;
@@ -32,7 +32,16 @@ export function printHttpResult(result: HttpResult): void {
   console.log(`${chalk.bold("URL")}     ${result.url}`);
   console.log(`${chalk.bold("Status")}  ${formatStatus(result.response.status, result.response.statusText)}`);
   console.log(`${chalk.bold("Time")}    ${result.response.durationMs}ms`);
-  console.log(`${chalk.bold("Headers")} ${Object.keys(result.response.headers).length}`);
+  
+  if (verbose) {
+    console.log(chalk.bold("Headers:"));
+    for (const [key, value] of Object.entries(result.response.headers)) {
+      console.log(`  ${chalk.gray(key)}: ${value}`);
+    }
+  } else {
+    console.log(`${chalk.bold("Headers")} ${Object.keys(result.response.headers).length}`);
+  }
+
   console.log(chalk.gray("Body:"));
   console.log(formatBody(result.response.body));
 }

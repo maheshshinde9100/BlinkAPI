@@ -8,11 +8,17 @@ export async function executeHttpRequest(input: HttpRequestInput): Promise<HttpR
   const startedAt = Date.now();
 
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
+
     const response = await fetch(input.url, {
       method: input.method,
       body: input.body,
       headers: input.headers,
+      signal: controller.signal,
     });
+
+    clearTimeout(timeoutId);
 
     return {
       ok: true,

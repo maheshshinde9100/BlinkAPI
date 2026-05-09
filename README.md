@@ -39,6 +39,7 @@ That's it. No fancy UI. No cloud sync. Just a fast, simple terminal tool.
 - [x] JSON request body (`-j`, `--json`) for write methods
 - [x] Structured response output (status, time, headers, body)
 - [x] Environment variable placeholders in URLs (`{{API_BASE_URL}}`)
+- [x] Request timeouts (30s) for reliability
 - [x] TypeScript project structure with modular layers
 
 ---
@@ -121,15 +122,52 @@ npm test
 
 ---
 
-## npm Publishing (Planned)
+## Installation
 
-Once final packaging is complete, ShellReq can be published as a global npm package:
+Install ShellReq globally via npm:
 
 ```bash
 npm install -g shellreq
 ```
 
-The goal is to keep it small, dependency-light, and installable with one command.
+---
+
+## Usage
+
+### 1. Simple GET Request
+```bash
+shellreq get https://jsonplaceholder.typicode.com/posts/1
+```
+
+### 2. POST Request with JSON Body
+You can pass JSON directly as a string:
+```bash
+shellreq post https://jsonplaceholder.typicode.com/posts --json '{"title":"Hello","body":"World","userId":1}'
+```
+
+### 3. Adding Custom Headers
+Use the `-H` or `--header` flag (can be used multiple times):
+```bash
+shellreq get https://api.example.com/data \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "X-Custom-Header: MyValue"
+```
+
+### 4. Using Environment Variables
+Create a `.env` file in your current directory:
+```bash
+API_URL=https://jsonplaceholder.typicode.com
+```
+Then use placeholders in your command:
+```bash
+shellreq get "{{API_URL}}/posts/1"
+```
+
+### 5. Verbose Output
+Show response headers using the `-v` or `--verbose` flag:
+```bash
+shellreq get https://jsonplaceholder.typicode.com/posts/1 --verbose
+```
 
 ---
 

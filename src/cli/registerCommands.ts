@@ -5,6 +5,7 @@ import { COMMAND_DEFINITIONS } from "./commandDefinitions.js";
 interface RequestCommandOptions {
   header?: string[];
   json?: string;
+  verbose?: boolean;
 }
 
 function collectHeader(value: string, previous: string[] = []): string[] {
@@ -23,12 +24,15 @@ export function registerCommands(program: Command): void {
       command.option("-j, --json <json>", "JSON request body");
     }
 
+    command.option("-v, --verbose", "show verbose output including response headers");
+
     command.action(async (url: string, options: RequestCommandOptions) => {
       await handleRequestCommand({
         method: definition.method,
         url,
         headers: options.header,
         jsonBody: options.json,
+        verbose: options.verbose,
       });
     });
   }
