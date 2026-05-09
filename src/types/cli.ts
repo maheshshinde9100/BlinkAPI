@@ -48,4 +48,5 @@ export interface CommandExecutionContext {
   url: string;
   headers?: string[];
   jsonBody?: string;
+  verbose?: boolean;
 }

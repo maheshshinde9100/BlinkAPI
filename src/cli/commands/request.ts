@@ -42,7 +42,7 @@ export async function handleRequestCommand(context: CommandExecutionContext): Pr
     headers: options.headers,
   });
 
-  printHttpResult(result);
+  printHttpResult(result, context.verbose);
 
   if (!result.ok) {
     process.exitCode = 1;
