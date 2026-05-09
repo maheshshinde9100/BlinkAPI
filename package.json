@@ -1,10 +1,10 @@
 {
-  "name": "blinkapi",
-  "version": "1.0.0",
+  "name": "shellreq",
+  "version": "0.1.0",
   "description": "A lightweight terminal-native API testing tool.",
   "main": "dist/index.js",
   "bin": {
-    "blinkapi": "dist/index.js"
+    "shellreq": "dist/index.js"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
@@ -16,7 +16,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/maheshshinde9100/BlinkAPI.git"
+    "url": "git+https://github.com/maheshshinde9100/ShellReq.git"
   },
   "keywords": [
     "cli",
@@ -36,9 +36,9 @@
     "node": ">=18"
   },
   "bugs": {
-    "url": "https://github.com/maheshshinde9100/BlinkAPI/issues"
+    "url": "https://github.com/maheshshinde9100/ShellReq/issues"
   },
-  "homepage": "https://github.com/maheshshinde9100/BlinkAPI#readme",
+  "homepage": "https://github.com/maheshshinde9100/ShellReq#readme",
   "dependencies": {
     "chalk": "^5.6.2",
     "commander": "^14.0.3",

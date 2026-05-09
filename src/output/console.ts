@@ -27,7 +27,7 @@ export function printHttpResult(result: HttpResult): void {
     return;
   }
 
-  console.log(chalk.cyan("BlinkAPI CLI"));
+  console.log(chalk.cyan("ShellReq CLI"));
   console.log(`${chalk.bold("Method")}  ${result.method}`);
   console.log(`${chalk.bold("URL")}     ${result.url}`);
   console.log(`${chalk.bold("Status")}  ${formatStatus(result.response.status, result.response.statusText)}`);

@@ -10,7 +10,7 @@ export async function runCli(argv: string[]): Promise<void> {
   const program = new Command();
 
   program
-    .name("blinkapi")
+    .name("shellreq")
     .description("Lightweight terminal-native API client")
     .version("1.0.0");
 

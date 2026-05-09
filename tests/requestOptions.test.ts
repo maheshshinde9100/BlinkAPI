@@ -5,10 +5,10 @@ describe("parseRequestOptions", () => {
   it("parses strict JSON body and injects content-type", () => {
     const result = parseRequestOptions({
       method: "POST",
-      jsonBody: '{"name":"blinkapi","version":1}',
+      jsonBody: '{"name":"shellreq","version":1}',
     });
 
-    expect(result.body).toBe('{"name":"blinkapi","version":1}');
+    expect(result.body).toBe('{"name":"shellreq","version":1}');
     expect(result.headers["Content-Type"]).toBe("application/json");
     expect(result.headers.Accept).toContain("application/json");
   });
@@ -16,10 +16,10 @@ describe("parseRequestOptions", () => {
   it("parses loose object input for PowerShell compatibility", () => {
     const result = parseRequestOptions({
       method: "POST",
-      jsonBody: "{name:blinkapi,version:1}",
+      jsonBody: "{name:shellreq,version:1}",
     });
 
-    expect(result.body).toBe('{"name":"blinkapi","version":1}');
+    expect(result.body).toBe('{"name":"shellreq","version":1}');
   });
 
   it("merges custom headers and keeps user-provided content-type", () => {
