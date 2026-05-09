@@ -1,12 +1,12 @@
 <div align="center">
 
-# ⚡ FetchUp
+# ⚡ BlinkAPI
 
 **A lightweight terminal REST client for developers.**
 
 Fast. Scriptable. Git-friendly.
 
-[![Status](https://img.shields.io/badge/status-early%20development-orange)](https://github.com/maheshshinde9100/FetchUp)
+[![Status](https://img.shields.io/badge/status-early%20development-orange)](https://github.com/maheshshinde9100/BlinkAPI)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D18.x-brightgreen)](https://nodejs.org/)
 
@@ -20,7 +20,7 @@ Fast. Scriptable. Git-friendly.
 
 I got tired of opening Postman just to fire a quick API request. It's heavy, it's slow, and it's overkill for most things I do day-to-day.
 
-**FetchUp** is my attempt to build a simple CLI tool that lets you:
+**BlinkAPI** is my attempt to build a simple CLI tool that lets you:
 
 - Make HTTP requests straight from the terminal
 - Save requests as files you can commit to Git
@@ -62,7 +62,7 @@ Keeping it simple — just Node.js, TypeScript, and a few well-known packages.
 ## Folder Structure
 
 ```
-fetchup/
+blinkapi/
 ├── src/
 │   ├── index.ts
 │   ├── cli/
@@ -96,8 +96,8 @@ fetchup/
 ## How to Run Locally
 
 ```bash
-git clone https://github.com/maheshshinde9100/FetchUp.git
-cd FetchUp
+git clone https://github.com/maheshshinde9100/BlinkAPI.git
+cd BlinkAPI
 npm install
 npm run build
 
@@ -123,10 +123,10 @@ npm test
 
 ## npm Publishing (Planned)
 
-Once final packaging is complete, FetchUp can be published as a global npm package:
+Once final packaging is complete, BlinkAPI can be published as a global npm package:
 
 ```bash
-npm install -g fetchup
+npm install -g blinkapi
 ```
 
 The goal is to keep it small, dependency-light, and installable with one command.
@@ -135,7 +135,7 @@ The goal is to keep it small, dependency-light, and installable with one command
 
 ## Contributing
 
-This is a personal project and very early stage — but if you have ideas, suggestions, or want to help, feel free to open an issue or PR on [GitHub](https://github.com/maheshshinde9100/FetchUp).
+This is a personal project and very early stage — but if you have ideas, suggestions, or want to help, feel free to open an issue or PR on [GitHub](https://github.com/maheshshinde9100/BlinkAPI).
 
 ---
 

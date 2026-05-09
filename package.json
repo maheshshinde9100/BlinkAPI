@@ -1,25 +1,33 @@
 {
-  "name": "fetchup",
-  "version": "0.1.0",
+  "name": "blinkapi",
+  "version": "1.0.0",
   "description": "A lightweight terminal-native API testing tool.",
   "main": "dist/index.js",
   "bin": {
-    "fetchup": "dist/index.js"
+    "blinkapi": "dist/index.js"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
     "dev": "tsx src/index.ts",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "prepublishOnly": "npm run build && npm test"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/maheshshinde9100/FetchUp.git"
+    "url": "git+https://github.com/maheshshinde9100/BlinkAPI.git"
   },
-  "keywords": [],
+  "keywords": [
+    "cli",
+    "api",
+    "testing",
+    "rest",
+    "http",
+    "terminal"
+  ],
   "author": "Mahesh Shinde",
-  "license": "ISC",
+  "license": "MIT",
   "type": "module",
   "files": [
     "dist"
@@ -28,9 +36,9 @@
     "node": ">=18"
   },
   "bugs": {
-    "url": "https://github.com/maheshshinde9100/FetchUp/issues"
+    "url": "https://github.com/maheshshinde9100/BlinkAPI/issues"
   },
-  "homepage": "https://github.com/maheshshinde9100/FetchUp#readme",
+  "homepage": "https://github.com/maheshshinde9100/BlinkAPI#readme",
   "dependencies": {
     "chalk": "^5.6.2",
     "commander": "^14.0.3",
