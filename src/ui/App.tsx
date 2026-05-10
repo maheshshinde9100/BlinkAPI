@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Box, Text, useInput } from 'ink';
-import Gradient from 'ink-gradient';
 import { Header } from './components/Header.js';
 import { Footer } from './components/Footer.js';
 import { RequestEditor } from './components/RequestEditor.js';
@@ -31,36 +30,53 @@ export const App: React.FC = () => {
     }
   });
 
-  const renderTab = (name: string, isActive: boolean) => (
-    <Box 
-      paddingX={2} 
-      backgroundColor={isActive ? 'cyan' : 'transparent'} 
-      borderStyle="round" 
-      borderColor={isActive ? 'cyan' : 'gray'}
-    >
-      <Text color={isActive ? 'black' : 'white'} bold={isActive}>
-        {name.toUpperCase()}
-      </Text>
-    </Box>
-  );
+  const renderTab = (name: string, isActive: boolean, id: string) => {
+    const colors: Record<string, string> = {
+      request: 'magenta',
+      response: 'green',
+      history: 'yellow',
+      collections: 'cyan'
+    };
+    
+    return (
+      <Box 
+        paddingX={2} 
+        backgroundColor={isActive ? colors[id] : 'transparent'} 
+        borderStyle="single" 
+        borderColor={isActive ? colors[id] : 'gray'}
+        marginRight={1}
+      >
+        <Text color={isActive ? 'black' : 'white'} bold={isActive}>
+          {isActive ? '● ' : '○ '} {name.toUpperCase()}
+        </Text>
+      </Box>
+    );
+  };
 
   return (
-    <Box flexDirection="column" height="100%" padding={1}>
+    <Box flexDirection="column" height="100%" padding={1} backgroundColor="#000">
       <Header />
       
       {/* Tab Navigation */}
-      <Box marginBottom={1} justifyContent="center">
-        {renderTab('Request', activeTab === 'request')}
-        <Box width={2} />
-        {renderTab('Response', activeTab === 'response')}
-        <Box width={2} />
-        {renderTab('History', activeTab === 'history')}
-        <Box width={2} />
-        {renderTab('Collections', activeTab === 'collections')}
+      <Box marginBottom={0} justifyContent="flex-start">
+        {renderTab('Editor', activeTab === 'request', 'request')}
+        {renderTab('Response', activeTab === 'response', 'response')}
+        {renderTab('History', activeTab === 'history', 'history')}
+        {renderTab('Collections', activeTab === 'collections', 'collections')}
       </Box>
 
       {/* Main Content Area */}
-      <Box flexGrow={1} borderStyle="bold" borderColor="blue" padding={1} flexDirection="column">
+      <Box 
+        flexGrow={1} 
+        borderStyle="double" 
+        borderColor={
+          activeTab === 'request' ? 'magenta' : 
+          activeTab === 'response' ? 'green' : 
+          activeTab === 'history' ? 'yellow' : 'cyan'
+        } 
+        padding={1} 
+        flexDirection="column"
+      >
         {activeTab === 'request' && (
           <RequestEditor 
             initialMethod={requestData.method}

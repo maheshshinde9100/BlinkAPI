@@ -16,41 +16,57 @@ export const ResponseViewer: React.FC<ResponseViewerProps> = ({ response }) => {
 
   const statusColor = response.status >= 200 && response.status < 400 ? 'green' : 'red';
 
+  // Simple syntax highlighting for JSON strings
+  const renderValue = (val: any) => {
+    if (typeof val === 'string') return <Text color="green">"{val}"</Text>;
+    if (typeof val === 'number') return <Text color="yellow">{val}</Text>;
+    if (typeof val === 'boolean') return <Text color="magenta">{String(val)}</Text>;
+    if (val === null) return <Text color="red">null</Text>;
+    return <Text>{String(val)}</Text>;
+  };
+
   return (
-    <Box flexDirection="column" flexGrow={1} padding={1}>
-      <Box marginBottom={1} justifyContent="space-between">
-        <Box borderStyle="double" borderColor={statusColor} paddingX={1}>
-            <Text color={statusColor} bold> {response.status} {response.statusText} </Text>
+    <Box flexDirection="column" flexGrow={1}>
+      {/* Top Status Bar */}
+      <Box paddingX={1} marginBottom={1} justifyContent="space-between" backgroundColor="#1e1e1e">
+        <Box>
+            <Text color={statusColor} bold> STATUS: {response.status} {response.statusText} </Text>
         </Box>
-        <Box paddingX={1} backgroundColor="blue">
-            <Text color="white" bold> {response.duration}ms </Text>
+        <Box>
+            <Text color="cyan" bold> TIME: {response.duration}ms </Text>
+            <Text> | </Text>
+            <Text color="yellow" bold> SIZE: {JSON.stringify(response.data).length}B </Text>
         </Box>
       </Box>
 
       <Box flexDirection="row" flexGrow={1}>
         {/* Headers Column */}
-        <Box flexDirection="column" width="30%" borderStyle="round" borderColor="gray" paddingX={1} marginRight={1}>
-          <Text bold color="cyan">HEADERS</Text>
-          <Box flexDirection="column" marginTop={1}>
-            {Object.entries(response.headers).slice(0, 10).map(([key, value]) => (
-              <Box key={key} marginBottom={1}>
-                <Text color="gray" dimColor>{key}:</Text>
-                <Text wrap="truncate-end"> {String(value)}</Text>
+        <Box flexDirection="column" width={40} borderStyle="round" borderColor="gray" paddingX={1} marginRight={1}>
+          <Box borderStyle="single" borderColor="blue" marginBottom={1} justifyContent="center">
+            <Text bold color="blue"> HEADERS </Text>
+          </Box>
+          <Box flexDirection="column">
+            {Object.entries(response.headers).slice(0, 15).map(([key, value]) => (
+              <Box key={key} marginBottom={0}>
+                <Text color="cyan" bold>{key.toLowerCase()}: </Text>
+                <Text wrap="truncate-end" dimColor>{String(value)}</Text>
               </Box>
             ))}
-            {Object.keys(response.headers).length > 10 && <Text dimColor>...</Text>}
+            {Object.keys(response.headers).length > 15 && <Text dimColor>  ...</Text>}
           </Box>
         </Box>
 
         {/* Body Column */}
-        <Box flexDirection="column" flexGrow={1} borderStyle="round" borderColor="cyan" paddingX={1}>
-          <Text bold color="cyan">BODY</Text>
-          <Box marginTop={1}>
+        <Box flexDirection="column" flexGrow={1} borderStyle="round" borderColor="blue" paddingX={1}>
+          <Box borderStyle="single" borderColor="cyan" marginBottom={1} justifyContent="center">
+            <Text bold color="cyan"> RESPONSE BODY </Text>
+          </Box>
+          <Box marginTop={0}>
             <Text>
               {typeof response.data === 'object' 
-                ? JSON.stringify(response.data, null, 2).slice(0, 2000)
-                : String(response.data).slice(0, 2000)}
-              {String(response.data).length > 2000 && '\n\n... (Output truncated)'}
+                ? JSON.stringify(response.data, null, 2).slice(0, 3000)
+                : String(response.data).slice(0, 3000)}
+              {String(response.data).length > 3000 && '\n\n... (Output truncated for performance)'}
             </Text>
           </Box>
         </Box>

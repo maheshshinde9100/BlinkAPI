@@ -4,14 +4,27 @@ import Gradient from 'ink-gradient';
 
 export const Header: React.FC = () => {
   return (
-    <Box marginBottom={1} justifyContent="space-between" borderStyle="single" borderColor="blue">
+    <Box 
+      marginBottom={1} 
+      justifyContent="space-between" 
+      borderStyle="bold" 
+      borderColor="cyan" 
+      paddingX={2}
+      backgroundColor="#111"
+    >
       <Box>
-        <Gradient name="atlas">
-          <Text bold italic> SHELLREQ TUI </Text>
+        <Gradient name="cristal">
+          <Text bold italic> ⚡ SHELLREQ </Text>
         </Gradient>
+        <Box marginLeft={2}>
+          <Text dimColor>Modern API Client for Terminal</Text>
+        </Box>
       </Box>
       <Box>
-        <Text color="gray">v0.2.0-beta</Text>
+        <Box backgroundColor="blue" paddingX={1} marginRight={1}>
+          <Text color="white" bold> v0.2.0 </Text>
+        </Box>
+        <Text color="gray">RELEASE</Text>
       </Box>
     </Box>
   );

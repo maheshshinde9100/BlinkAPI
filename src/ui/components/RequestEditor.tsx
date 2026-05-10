@@ -73,7 +73,6 @@ export const RequestEditor: React.FC<RequestEditorProps> = ({
   };
 
   useInput((input, key) => {
-    // If we're on the URL or Body field, arrow keys move focus
     if (focus !== 'method') {
       if (key.downArrow) {
         setFocus(prev => {
@@ -90,94 +89,110 @@ export const RequestEditor: React.FC<RequestEditorProps> = ({
       }
     }
     
-    // Global ENTER to send if on URL
     if (key.return && focus === 'url') {
       handleSend();
     }
   });
 
   return (
-    <Box flexDirection="column" padding={1}>
-      <Box marginBottom={1}>
-        <Text bold color="cyan" inverse>  REQUEST CONFIGURATION  </Text>
+    <Box flexDirection="column" flexGrow={1}>
+      {/* Header Info */}
+      <Box marginBottom={1} justifyContent="center" backgroundColor="blue" paddingX={2}>
+        <Text color="white" bold italic> NEW REQUEST CONFIGURATION </Text>
       </Box>
 
-      {/* Method Selection */}
-      <Box marginBottom={1}>
-        <Box width={15}>
-          <Text color={focus === 'method' ? 'yellow' : 'white'}>
-            {focus === 'method' ? '▶ ' : '  '}Method:
-          </Text>
-        </Box>
-        {focus === 'method' ? (
-          <Box borderStyle="bold" borderColor="yellow" paddingX={1}>
-            <SelectInput 
-              items={methods} 
-              onSelect={(item) => {
-                setMethod(item.value);
-                setFocus('url');
-              }} 
-            />
+      {/* Main Form Area - Use a fixed height to prevent flickering */}
+      <Box flexDirection="column" height={15}>
+        <Box flexDirection="row" marginBottom={1}>
+          {/* Method Area - Fixed width and height */}
+          <Box 
+            width={20} 
+            height={8} 
+            borderStyle="round" 
+            borderColor={focus === 'method' ? 'yellow' : 'gray'} 
+            flexDirection="column"
+            paddingX={1}
+          >
+            <Text color={focus === 'method' ? 'yellow' : 'white'} bold underline> METHOD </Text>
+            {focus === 'method' ? (
+              <Box marginTop={1}>
+                <SelectInput 
+                  items={methods} 
+                  onSelect={(item) => {
+                    setMethod(item.value);
+                    setFocus('url');
+                  }} 
+                />
+              </Box>
+            ) : (
+              <Box marginTop={1} justifyContent="center" flexGrow={1}>
+                <Text color="magenta" bold>{method}</Text>
+              </Box>
+            )}
           </Box>
-        ) : (
-          <Box borderStyle="single" borderColor="gray" paddingX={1}>
-            <Text color="magenta" bold>{method}</Text>
+
+          {/* URL Area */}
+          <Box 
+            flexGrow={1} 
+            height={8} 
+            borderStyle="round" 
+            borderColor={focus === 'url' ? 'yellow' : 'gray'} 
+            flexDirection="column"
+            paddingX={1}
+            marginLeft={1}
+          >
+            <Text color={focus === 'url' ? 'yellow' : 'white'} bold underline> TARGET URL </Text>
+            <Box marginTop={1} flexGrow={1}>
+              {focus === 'url' ? (
+                <TextInput 
+                  value={url} 
+                  onChange={setUrl} 
+                  onSubmit={handleSend}
+                />
+              ) : (
+                <Text color="gray" wrap="truncate-end">{url}</Text>
+              )}
+            </Box>
+          </Box>
+        </Box>
+
+        {/* JSON Body Area */}
+        {(method !== 'GET' && method !== 'DELETE') && (
+          <Box 
+            height={6} 
+            borderStyle="round" 
+            borderColor={focus === 'body' ? 'yellow' : 'gray'} 
+            flexDirection="column"
+            paddingX={1}
+          >
+            <Text color={focus === 'body' ? 'yellow' : 'white'} bold underline> JSON BODY </Text>
+            <Box flexGrow={1}>
+              {focus === 'body' ? (
+                <TextInput 
+                  value={body} 
+                  onChange={setBody} 
+                  placeholder='{ "key": "value" }'
+                />
+              ) : (
+                <Text color="gray" dimColor>{body || 'Empty body payload...'}</Text>
+              )}
+            </Box>
           </Box>
         )}
       </Box>
 
-      {/* URL Input */}
-      <Box marginBottom={1}>
-        <Box width={15}>
-          <Text color={focus === 'url' ? 'yellow' : 'white'}>
-            {focus === 'url' ? '▶ ' : '  '}URL:
-          </Text>
-        </Box>
-        <Box borderStyle="round" borderColor={focus === 'url' ? 'yellow' : 'gray'} paddingX={1} flexGrow={1}>
-          {focus === 'url' ? (
-            <TextInput 
-              value={url} 
-              onChange={setUrl} 
-              onSubmit={handleSend}
-            />
-          ) : (
-            <Text color="gray">{url}</Text>
-          )}
-        </Box>
-      </Box>
-
-      {/* JSON Body Input (only for non-GET) */}
-      {(method !== 'GET' && method !== 'DELETE') && (
-        <Box marginBottom={1}>
-          <Box width={15}>
-            <Text color={focus === 'body' ? 'yellow' : 'white'}>
-              {focus === 'body' ? '▶ ' : '  '}JSON Body:
-            </Text>
-          </Box>
-          <Box borderStyle="round" borderColor={focus === 'body' ? 'yellow' : 'gray'} paddingX={1} height={5} flexGrow={1}>
-            {focus === 'body' ? (
-              <TextInput 
-                value={body} 
-                onChange={setBody} 
-                placeholder='{ "key": "value" }'
-              />
+      {/* Bottom Status / Actions */}
+      <Box marginTop={1} borderStyle="single" borderColor="blue" paddingX={1} justifyContent="space-between">
+        <Box>
+            {loading ? (
+                <Text color="yellow" bold> ⚡ SENDING... </Text>
             ) : (
-              <Text color="gray" dimColor>{body || 'Empty body...'}</Text>
+                <Text color="green"> READY TO SEND </Text>
             )}
-          </Box>
         </Box>
-      )}
-
-      {loading && (
-        <Box marginTop={1}>
-          <Text color="yellow" bold>⚡ SENDING REQUEST...</Text>
+        <Box>
+            <Text dimColor> Press <Text color="yellow">ENTER</Text> on URL to execute request </Text>
         </Box>
-      )}
-
-      <Box marginTop={1} borderStyle="single" borderColor="blue" paddingX={1}>
-        <Text dimColor>
-          <Text color="yellow">↑↓</Text> Navigate | <Text color="yellow">ENTER</Text> Send Request (from URL field)
-        </Text>
       </Box>
     </Box>
   );
