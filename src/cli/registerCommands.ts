@@ -36,4 +36,12 @@ export function registerCommands(program: Command): void {
       });
     });
   }
+
+  program
+    .command("ui")
+    .description("Launch terminal interactive UI")
+    .action(async () => {
+      const { launchTui } = await import("../ui/TuiLauncher.js");
+      await launchTui();
+    });
 }
