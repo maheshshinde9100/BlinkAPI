@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Box, Text, useInput } from 'ink';
 import Gradient from 'ink-gradient';
-import BigText from 'ink-big-text';
 import { Header } from './components/Header.js';
 import { Footer } from './components/Footer.js';
 import { RequestEditor } from './components/RequestEditor.js';
@@ -32,19 +31,44 @@ export const App: React.FC = () => {
     }
   });
 
+  const renderTab = (name: string, isActive: boolean) => (
+    <Box 
+      paddingX={2} 
+      backgroundColor={isActive ? 'cyan' : 'transparent'} 
+      borderStyle="round" 
+      borderColor={isActive ? 'cyan' : 'gray'}
+    >
+      <Text color={isActive ? 'black' : 'white'} bold={isActive}>
+        {name.toUpperCase()}
+      </Text>
+    </Box>
+  );
+
   return (
     <Box flexDirection="column" height="100%" padding={1}>
       <Header />
+      
+      {/* Tab Navigation */}
+      <Box marginBottom={1} justifyContent="center">
+        {renderTab('Request', activeTab === 'request')}
+        <Box width={2} />
+        {renderTab('Response', activeTab === 'response')}
+        <Box width={2} />
+        {renderTab('History', activeTab === 'history')}
+        <Box width={2} />
+        {renderTab('Collections', activeTab === 'collections')}
+      </Box>
 
-      <Box flexGrow={1} borderStyle="round" borderColor="cyan" paddingX={1} flexDirection="column">
+      {/* Main Content Area */}
+      <Box flexGrow={1} borderStyle="bold" borderColor="blue" padding={1} flexDirection="column">
         {activeTab === 'request' && (
-          <RequestEditor
+          <RequestEditor 
             initialMethod={requestData.method}
             initialUrl={requestData.url}
             onResponse={(res) => {
               setLastResponse(res);
               setActiveTab('response');
-            }}
+            }} 
           />
         )}
         {activeTab === 'response' && (

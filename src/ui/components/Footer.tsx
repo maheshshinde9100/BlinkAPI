@@ -7,19 +7,31 @@ interface FooterProps {
 
 export const Footer: React.FC<FooterProps> = ({ activeTab }) => {
   return (
-    <Box marginTop={1} paddingX={1} backgroundColor="gray">
-      <Text color="black"> TAB </Text>
-      <Text> Switch Tab </Text>
-      <Text color="black"> | </Text>
-      <Text color="black"> ENTER </Text>
-      <Text> Send Request </Text>
-      <Text color="black"> | </Text>
-      <Text color="black"> Q </Text>
-      <Text> Quit </Text>
+    <Box marginTop={1} paddingX={1}>
+      <Box backgroundColor="gray" paddingX={1} marginRight={1}>
+        <Text color="black" bold> TAB </Text>
+      </Box>
+      <Text>Switch Tab</Text>
+      
+      <Box width={3} />
+
+      <Box backgroundColor="gray" paddingX={1} marginRight={1}>
+        <Text color="black" bold> ENTER </Text>
+      </Box>
+      <Text>Send Request</Text>
+
+      <Box width={3} />
+
+      <Box backgroundColor="gray" paddingX={1} marginRight={1}>
+        <Text color="black" bold> Q </Text>
+      </Box>
+      <Text>Quit</Text>
       
       <Box flexGrow={1} />
       
-      <Text italic>Active: {activeTab.toUpperCase()}</Text>
+      <Box paddingX={1} borderStyle="single" borderColor="cyan">
+        <Text italic color="cyan"> FOCUS: {activeTab.toUpperCase()} </Text>
+      </Box>
     </Box>
   );
 };
