@@ -2,9 +2,9 @@
 
 # ⚡ ShellReq
 
-**A lightweight terminal-native API testing tool for developers.**
+**A lightweight, interactive terminal-native API testing tool for developers.**
 
-Fast. Scriptable. Git-friendly. Optimized with Axios.
+Fast. Scriptable. Beautiful TUI. Optimized with Axios.
 
 [![npm version](https://img.shields.io/npm/v/shellreq.svg)](https://www.npmjs.com/package/shellreq)
 [![Status](https://img.shields.io/badge/status-active-brightgreen)](https://github.com/maheshshinde9100/ShellReq)
@@ -17,18 +17,43 @@ Fast. Scriptable. Git-friendly. Optimized with Axios.
 
 ## Why ShellReq?
 
-I got tired of opening heavy GUI apps like Postman just to fire a quick API request. **ShellReq** is a simple CLI tool that lets you:
+I got tired of opening heavy GUI apps like Postman just to fire a quick API request. **ShellReq** brings the power of a modern API client directly into your workflow:
 
-- **Fast Execution**: Make HTTP requests straight from your terminal.
+- **Interactive TUI**: A full-screen terminal UI for managing requests (v0.2.0+).
+- **Fast Execution**: Make HTTP requests instantly without leaving your terminal.
 - **Git Friendly**: Save your requests as shell scripts or CI/CD steps.
-- **Environment Support**: Use `.env` files to switch between Dev, Staging, and Prod.
+- **Environment Support**: Seamlessly use `.env` files for multi-environment testing.
 - **Zero Configuration**: Just install and start testing.
+
+---
+
+## Interactive Mode (TUI) ⚡
+
+The killer feature of ShellReq. A "Postman-like" experience completely inside your terminal.
+
+```bash
+shellreq ui
+```
+
+**Features:**
+- **Dynamic Request Editor**: Switch methods (GET, POST, etc.) and enter URLs with a focused, interactive UI.
+- **JSON Body Support**: Built-in editor for payloads in POST/PUT/PATCH requests.
+- **Split-Pane Response Viewer**: View status codes, response times, headers, and formatted bodies side-by-side.
+- **Automatic History**: Keeps track of your last 50 requests automatically.
+- **Collections**: Save and organize your most used requests for instant reuse.
+
+### Screenshots
+![ShellReq Editor](./terminal-ui-1.jpg)
+*The Interactive Request Editor with Method Selection and URL input.*
+
+![ShellReq Response](./terminal-ui-2.jpg)
+*Split-pane Response Viewer showing Headers and JSON Body.*
 
 ---
 
 ## Installation
 
-Install ShellReq globally to use it anywhere in your terminal:
+Install ShellReq globally to use it anywhere:
 
 ```bash
 npm install -g shellreq
@@ -37,12 +62,12 @@ npm install -g shellreq
 Or run it instantly using npx:
 
 ```bash
-npx shellreq get https://jsonplaceholder.typicode.com/posts/1
+npx shellreq ui
 ```
 
 ---
 
-## Usage & Examples
+## 🛠 Usage & Examples (CLI)
 
 ### 1. Basic GET Request
 ```bash
@@ -51,27 +76,15 @@ shellreq get https://jsonplaceholder.typicode.com/posts/1
 
 ### 2. POST with JSON Body
 ```bash
-shellreq post https://jsonplaceholder.typicode.com/posts --json '{"title": "New Post", "body": "Mahesh Shinde", "userId": 1}'
+shellreq post https://jsonplaceholder.typicode.com/posts --json '{"title": "New Post", "body": "Mahesh Shinde"}'
 ```
 
-### 3. PUT (Update)
+### 3. Custom Headers (`-H`)
 ```bash
-shellreq put https://jsonplaceholder.typicode.com/posts/1 --json '{"id": 1, "title": "Updated Title"}'
+shellreq get https://api.example.com/data -H "Authorization: Bearer TOKEN"
 ```
 
-### 4. DELETE
-```bash
-shellreq delete https://jsonplaceholder.typicode.com/posts/1
-```
-
-### 5. Custom Headers (`-H`)
-```bash
-shellreq get https://api.example.com/data \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -H "Content-Type: application/json"
-```
-
-### 6. Verbose Mode (`-v`)
+### 4. Verbose Mode (`-v`)
 Show full response headers for debugging:
 ```bash
 shellreq get https://jsonplaceholder.typicode.com/posts/1 --verbose
@@ -86,7 +99,7 @@ Create a `.env` file in your project:
 API_URL=https://jsonplaceholder.typicode.com
 ```
 
-Use it in your commands with double curly braces:
+Use it in your commands:
 ```bash
 shellreq get "{{API_URL}}/posts/1"
 ```
@@ -94,9 +107,10 @@ shellreq get "{{API_URL}}/posts/1"
 ---
 
 ## Tech Stack
-- **Engine**: [Axios](https://axios-http.com/) (Optimized for speed and reliability)
+- **Engine**: [Axios](https://axios-http.com/)
+- **Interactive TUI**: [Ink](https://github.com/vadimdemedes/ink) (React for CLI)
 - **CLI Parsing**: [Commander.js](https://github.com/tj/commander.js/)
-- **Styling**: [Chalk](https://github.com/chalk/chalk)
+- **Styling**: [Chalk](https://github.com/chalk/chalk) & [Ink-Gradient](https://github.com/vadimdemedes/ink-gradient)
 - **Environment**: [Dotenv](https://github.com/motdotla/dotenv)
 
 ---
@@ -106,14 +120,10 @@ This is an open project. Feel free to open issues or PRs on [GitHub](https://git
 
 ---
 
-## License
+## 📄 License
 [MIT](LICENSE)
 
 ---
-
-## System Architecture
-![System Architecture](./system-architecture.png)
-
 
 <div align="center">
   Built by <a href="https://github.com/maheshshinde9100">Mahesh Shinde</a>
