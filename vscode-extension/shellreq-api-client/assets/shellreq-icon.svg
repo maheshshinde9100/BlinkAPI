@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <!-- Terminal window outline -->
+  <rect x="1" y="1" width="16" height="14" rx="2.2"
+        fill="none" stroke="#ffffff" stroke-width="1.1" stroke-linejoin="round"/>
+
+  <!-- Traffic dots -->
+  <circle cx="3.5" cy="4" r="0.7" fill="#ffffff"/>
+  <circle cx="6"   cy="4" r="0.7" fill="#ffffff"/>
+  <circle cx="8.5" cy="4" r="0.7" fill="#ffffff"/>
+
+  <!-- Prompt caret > -->
+  <polyline points="3,8.5 5.5,10.5 3,12.5"
+            fill="none" stroke="#ffffff" stroke-width="1.1"
+            stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Cursor dash -->
+  <line x1="6.5" y1="12.5" x2="10" y2="12.5"
+        stroke="#ffffff" stroke-width="1.1" stroke-linecap="round"/>
+
+  <!-- Lightning bolt -->
+  <polyline points="14,1.5 11,10 13.5,9.5 10.5,16 18,8 15,8.5 17.5,1.5"
+            fill="none" stroke="#ffffff" stroke-width="1"
+            stroke-linejoin="round" stroke-linecap="round"/>
+</svg>

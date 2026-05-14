@@ -1,0 +1,17 @@
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Terminal Window -->
+  <rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" stroke-width="1.5"/>
+  <line x1="2" y1="9" x2="22" y2="9" stroke="currentColor" stroke-width="1.2"/>
+  
+  <!-- Traffic lights -->
+  <circle cx="5" cy="6.5" r="0.8" fill="currentColor"/>
+  <circle cx="7.5" cy="6.5" r="0.8" fill="currentColor"/>
+  <circle cx="10" cy="6.5" r="0.8" fill="currentColor"/>
+  
+  <!-- Prompt -->
+  <path d="M5 12.5L7 14.5L5 16.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <line x1="8.5" y1="16.5" x2="11.5" y2="16.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+  
+  <!-- Lightning Bolt (The "Shell" power) -->
+  <path d="M16 5L14 13L17 12L15 20L21 10L18 11L20 5H16Z" fill="currentColor" stroke="currentColor" stroke-width="0.5" stroke-linejoin="round"/>
+</svg>

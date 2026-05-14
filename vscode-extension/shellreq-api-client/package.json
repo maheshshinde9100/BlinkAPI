@@ -1,8 +1,8 @@
 {
   "name": "shellreq-api-client",
   "displayName": "ShellReq API Client",
-  "description": "Lightweight API testing extension powered by ShellReq with JSON response formatting and easy execution.",
-  "version": "0.1.0",
+  "description": "Powerful, lightning-fast API testing client for VS Code. High-performance REST testing with a dedicated sidebar, collections, and history.",
+  "version": "0.1.1",
   "publisher": "maheshshinde9100",
   "author": "Mahesh Shinde (maheshshinde9100)",
   "icon": "icon.png",
@@ -10,8 +10,10 @@
     "vscode": "^1.118.0"
   },
   "categories": [
-    "Other"
+    "Other",
+    "Testing"
   ],
+  "keywords": ["api", "rest", "http", "testing", "lightweight", "client", "fast"],
   "activationEvents": [],
   "main": "./dist/extension.js",
   "repository": {
@@ -24,8 +26,8 @@
       "activitybar": [
         {
           "id": "shellreq-explorer",
-          "title": "ShellReq",
-          "icon": "icon.png"
+          "title": "ShellReq API Client",
+          "icon": "assets/shellreq_logo_white.svg"
         }
       ]
     },
@@ -34,8 +36,7 @@
         {
           "type": "webview",
           "id": "shellreq.clientView",
-          "name": "API Client",
-          "icon": "icon.png"
+          "name": "API Client"
         }
       ]
     },

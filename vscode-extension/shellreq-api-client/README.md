@@ -1,60 +1,68 @@
 # ShellReq API Client
 
-A lightweight, powerful API testing extension for Visual Studio Code, inspired by tools like Thunder Client and powered by the ShellReq engine.
+[![Version](https://img.shields.io/visual-studio-marketplace/v/maheshshinde9100.shellreq-api-client?style=flat-square)](https://marketplace.visualstudio.com/items?itemName=maheshshinde9100.shellreq-api-client)
+[![Installs](https://img.shields.io/visual-studio-marketplace/i/maheshshinde9100.shellreq-api-client?style=flat-square)](https://marketplace.visualstudio.com/items?itemName=maheshshinde9100.shellreq-api-client)
+
+A powerful, lightning-fast API testing client built natively for Visual Studio Code. ShellReq provides a high-performance, minimalist interface to test your endpoints without the bloat of external applications.
 
 ## Key Features
 
-- **Sidebar API Testing**: A full-featured interface in your VS Code sidebar. No more context switching.
-- **Save & Organize**: Save your most-used requests into **Collections** for instant access.
-- **Automatic History**: Automatically tracks your recently sent requests.
-- **Smart Formatting**: Pretty-prints JSON responses and provides detailed info like status code, execution time, and payload size.
-- **Multi-Method Support**: Easily switch between GET, POST, PUT, DELETE, and PATCH.
-- **State Persistence**: Your URL, headers, and body are remembered even if you switch files or close VS Code.
+- **Optimized UI**: A sleek, high-performance interface in your sidebar for a seamless, lightweight workflow.
+- **Structured Grid Editors**: Manage Headers and Parameters efficiently with our native key-value editors.
+- **Smart Collections**: Organize your most-used requests into permanent collections for instant access.
+- **Instant History**: Zero-lag access to your recent requests with a detailed history view.
+- **Advanced Response Analysis**: 
+  - Lightning-fast JSON pretty-printing.
+  - Real-time metadata: Status codes, precise response times, and payload sizes.
+  - Comprehensive headers inspection.
+- **Full HTTP Support**: Complete support for `GET`, `POST`, `PUT`, `PATCH`, and `DELETE`.
+- **Ultra-Light Persistence**: Efficiently remembers your session even after restarting VS Code.
 
-## Requirements
-
-- [ShellReq](https://github.com/maheshshinde9100/ShellReq) installed globally (for CLI fallback)
-  ```bash
-  npm install -g shellreq
-  ```
+---
 
 ## How to Use
 
-### 1. Open the API Client
-Look for the **ShellReq** icon in the VS Code Activity Bar (usually on the far left). Click it to open the API Client sidebar.
+### 1. Open the Client
+Click the **ShellReq Lightning Bolt** icon in your VS Code Activity Bar (left sidebar).
 
-### 2. Basic Request
-- **Select Method**: Choose from the dropdown (default is GET).
-- **Enter URL**: Type your API endpoint (e.g., `https://api.example.com/data`).
-- **Send**: Click the **SEND** button to execute. Results will appear in the response panel at the bottom.
+### 2. Configure Your Request
+- **Method**: Select the HTTP method from the dropdown.
+- **URL**: Enter your endpoint URL.
+- **Params/Headers**: Use the dedicated tabs to add key-value pairs.
+- **Body**: For payload-based requests, use the Body tab to enter your JSON.
 
-### 3. Headers and Body
-- Click the **Headers** tab to add key-value pairs (e.g., `Content-Type: application/json`).
-- If using POST/PUT, click the **Body** tab to enter your JSON payload.
+### 3. Send & Analyze
+Click **SEND**. The response panel will instantly show your data, status code, and execution time.
 
-### 4. Manage History & Collections
-- **History**: The last 20 requests are automatically saved in the **History** tab. Click any item to reload it.
-- **Collections**: Click the **SAVE** button next to "SEND" to permanently save the current request into your Collections.
+### 4. Save to Collections
+Keep your workflow organized by clicking **SAVE** to add any request to your permanent collections.
+
+---
 
 ## Commands
 
-- `ShellReq: Focus API Client`: Quickly jump to the API sidebar.
-- `ShellReq: Run Request`: Quick input-box based request (legacy shortcut).
+- `ShellReq: Focus API Client` - Jump straight to the API sidebar.
+- `ShellReq: Run Request` - Quick command-palette based request execution.
+
+---
 
 ## Release Notes
 
+### 0.1.1
+- **Performance Overhaul**: Redesigned the interface to be faster and more lightweight.
+- **Native Grid Editors**: Added high-performance editors for Headers and Query Parameters.
+- **Theme Integration**: Fully theme-aware icons and UI elements.
+- **Optimized Persistence**: Improved data handling for a snappier experience.
+- **History Control**: Added instant "Clear History" capability.
+
 ### 0.1.0
-- **Official Release**: Official release of the Sidebar API Client with full testing capabilities.
-- Polished UI and state management.
+- **Official Release**: Native Sidebar API Client with full testing capabilities.
+- Optimized state management and core logic.
 
 ### 0.0.3
-- **Massive UI Overhaul**: Introduced the Sidebar Webview for a seamless testing experience.
-- **Collections & History**: Added persistent storage for saved and recent requests.
-- **Improved Performance**: Switched core requests to Axios for better reliability.
+- **Sidebar Integration**: Introduced the streamlined sidebar-first experience.
+- **Persistent Storage**: High-performance storage for collections.
 
-### 0.0.2
-- Initial Sidebar prototyping and basic request handling.
+---
 
-### 0.0.1
-- Original CLI-based version release.
-
+**Built by [Mahesh Shinde](https://github.com/maheshshinde9100)**
