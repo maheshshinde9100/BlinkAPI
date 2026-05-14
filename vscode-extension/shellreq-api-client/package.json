@@ -2,7 +2,7 @@
   "name": "shellreq-api-client",
   "displayName": "ShellReq API Client",
   "description": "Powerful, lightning-fast API testing client for VS Code. High-performance REST testing with a dedicated sidebar, collections, and history.",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "publisher": "maheshshinde9100",
   "author": "Mahesh Shinde (maheshshinde9100)",
   "icon": "icon.png",

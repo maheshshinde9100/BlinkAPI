@@ -10,17 +10,26 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.window.registerWebviewViewProvider(ShellReqViewProvider.viewType, provider)
     );
 
-    // Sync state with Webview
-    provider.onDidSaveCollection((item: any) => {
+    // Initial state sync
+    const syncState = () => {
         const collections = context.globalState.get<any[]>('shellreq.collections', []);
-        // Check if already exists (by name or URL)
-        const exists = collections.findIndex(c => c.url === item.url && c.method === item.method);
-        if (exists > -1) {
-            collections[exists] = item;
-        } else {
-            collections.push(item);
+        const history = context.globalState.get<any[]>('shellreq.history', []);
+        provider.updateState({ collections, history });
+    };
+
+    // Handle state updates from Webview
+    provider.onDidUpdateState((state: any) => {
+        if (state.collections) {
+            context.globalState.update('shellreq.collections', state.collections);
         }
-        context.globalState.update('shellreq.collections', collections);
+        if (state.history) {
+            context.globalState.update('shellreq.history', state.history);
+        }
+    });
+
+    // Sync state when view becomes visible
+    provider.onDidReady(() => {
+        syncState();
     });
 
     // Handle focus command

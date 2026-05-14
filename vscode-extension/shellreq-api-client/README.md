@@ -48,12 +48,14 @@ Keep your workflow organized by clicking **SAVE** to add any request to your per
 
 ## Release Notes
 
+### 0.1.2
+- **Production Overhaul**: Fixed critical UI and state-syncing bugs for rock-solid performance.
+- **Improved Persistence**: Added bi-directional syncing between extension and sidebar.
+- **Icon Reliability**: Updated activity bar icon to a high-contrast, theme-aware native design.
+- **Security Headers**: Added CSP for robust Webview execution.
+- **Loading UX**: Added visual feedback (spinners) and disabled states during requests.
+
 ### 0.1.1
-- **Performance Overhaul**: Redesigned the interface to be faster and more lightweight.
-- **Native Grid Editors**: Added high-performance editors for Headers and Query Parameters.
-- **Theme Integration**: Fully theme-aware icons and UI elements.
-- **Optimized Persistence**: Improved data handling for a snappier experience.
-- **History Control**: Added instant "Clear History" capability.
 
 ### 0.1.0
 - **Official Release**: Native Sidebar API Client with full testing capabilities.

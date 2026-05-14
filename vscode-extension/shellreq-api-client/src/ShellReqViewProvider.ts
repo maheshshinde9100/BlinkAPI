@@ -4,8 +4,10 @@ import axios from 'axios';
 export class ShellReqViewProvider implements vscode.WebviewViewProvider {
     public static readonly viewType = 'shellreq.clientView';
     private _view?: vscode.WebviewView;
-    private _onDidSaveCollection = new vscode.EventEmitter<any>();
-    public readonly onDidSaveCollection = this._onDidSaveCollection.event;
+    private _onDidUpdateState = new vscode.EventEmitter<any>();
+    public readonly onDidUpdateState = this._onDidUpdateState.event;
+    private _onDidReady = new vscode.EventEmitter<void>();
+    public readonly onDidReady = this._onDidReady.event;
 
     constructor(private readonly _extensionUri: vscode.Uri) {}
 
@@ -19,11 +21,27 @@ export class ShellReqViewProvider implements vscode.WebviewViewProvider {
             enableScripts: true,
             localResourceRoots: [this._extensionUri]
         };
-        webviewView.webview.html = this._getHtml();
+        webviewView.webview.html = this._getHtml(webviewView.webview);
+
         webviewView.webview.onDidReceiveMessage(async (data) => {
-            if (data.type === 'runRequest') { this._handleRequest(data.value); }
-            if (data.type === 'saveCollection') { this._onDidSaveCollection.fire(data.value); }
+            switch (data.type) {
+                case 'ready':
+                    this._onDidReady.fire();
+                    break;
+                case 'runRequest':
+                    this._handleRequest(data.value);
+                    break;
+                case 'updateState':
+                    this._onDidUpdateState.fire(data.value);
+                    break;
+            }
         });
+    }
+
+    public updateState(state: any) {
+        if (this._view) {
+            this._view.webview.postMessage({ type: 'syncState', value: state });
+        }
     }
 
     private async _handleRequest(cfg: any) {
@@ -45,7 +63,7 @@ export class ShellReqViewProvider implements vscode.WebviewViewProvider {
             });
 
             const duration = Date.now() - startedAt;
-            const bytes = response.data ? response.data.length : 0;
+            const bytes = response.data ? String(response.data).length : 0;
             const size = bytes < 1024 ? `${bytes} B` : `${(bytes / 1024).toFixed(1)} KB`;
             
             this._view.webview.postMessage({ 
@@ -59,18 +77,26 @@ export class ShellReqViewProvider implements vscode.WebviewViewProvider {
                     size 
                 } 
             });
-            this._view.webview.postMessage({ type: 'saveHistory', value: { method: cfg.method, url: cfg.url } });
+            this._view.webview.postMessage({ 
+                type: 'addHistory', 
+                value: { method: cfg.method, url: cfg.url } 
+            });
         } catch (e: any) {
-            this._view.webview.postMessage({ type: 'error', value: e.message || 'Request failed' });
+            this._view.webview.postMessage({ 
+                type: 'error', 
+                value: e.response?.data || e.message || 'Request failed' 
+            });
         }
     }
 
-    private _getHtml(): string {
+    private _getHtml(webview: vscode.Webview): string {
+        const nonce = getNonce();
         return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}';">
     <title>ShellReq API Client</title>
     <style>
         :root {
@@ -168,7 +194,7 @@ export class ShellReqViewProvider implements vscode.WebviewViewProvider {
             color: var(--accent);
             border: 1px solid var(--accent);
             border-radius: 4px;
-            padding: 0 10px;
+            padding: 4px 10px;
             font-weight: 600;
             font-size: 11px;
             cursor: pointer;
@@ -278,7 +304,7 @@ export class ShellReqViewProvider implements vscode.WebviewViewProvider {
             min-height: 150px;
         }
 
-        /* LISTS (History/Collections) */
+        /* LISTS */
         .list { display: flex; flex-direction: column; gap: 4px; }
         .list-item {
             display: flex;
@@ -372,7 +398,8 @@ export class ShellReqViewProvider implements vscode.WebviewViewProvider {
             padding: 10px;
             font-family: var(--editor-font);
             font-size: 12px;
-            white-space: pre;
+            white-space: pre-wrap;
+            word-break: break-all;
         }
 
         .loading-overlay {
@@ -401,22 +428,23 @@ export class ShellReqViewProvider implements vscode.WebviewViewProvider {
             padding: 40px 20px;
             font-style: italic;
         }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: rgba(128,128,128,0.3); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(128,128,128,0.5); }
     </style>
 </head>
 <body>
     <div class="app">
-        <!-- HEADER -->
         <div class="header">
             <div class="url-bar">
                 <select id="method" class="method-select">
-                    <option>GET</option>
-                    <option>POST</option>
-                    <option>PUT</option>
-                    <option>PATCH</option>
-                    <option>DELETE</option>
+                    <option>GET</option><option>POST</option><option>PUT</option>
+                    <option>PATCH</option><option>DELETE</option>
                 </select>
                 <div class="url-input-wrap">
-                    <input id="url" class="url-input" placeholder="Enter request URL">
+                    <input id="url" class="url-input" placeholder="https://api.example.com">
                 </div>
                 <button id="sendBtn" class="btn-send">SEND</button>
             </div>
@@ -425,7 +453,6 @@ export class ShellReqViewProvider implements vscode.WebviewViewProvider {
             </div>
         </div>
 
-        <!-- TABS -->
         <div class="tabs-container">
             <div class="tab active" data-pane="pane-params">Params</div>
             <div class="tab" data-pane="pane-headers">Headers</div>
@@ -434,51 +461,38 @@ export class ShellReqViewProvider implements vscode.WebviewViewProvider {
             <div class="tab" data-pane="pane-collections">Collections</div>
         </div>
 
-        <!-- CONTENT -->
         <div class="content">
-            <!-- Params -->
             <div id="pane-params" class="pane active">
                 <div id="params-list" class="kv-container"></div>
-                <button class="btn-add-kv" onclick="addKV('params')">+ Add Parameter</button>
+                <button class="btn-add-kv" id="addParamBtn">+ Add Parameter</button>
             </div>
-
-            <!-- Headers -->
             <div id="pane-headers" class="pane">
                 <div id="headers-list" class="kv-container"></div>
-                <button class="btn-add-kv" onclick="addKV('headers')">+ Add Header</button>
+                <button class="btn-add-kv" id="addHeaderBtn">+ Add Header</button>
             </div>
-
-            <!-- Body -->
             <div id="pane-body" class="pane">
                 <textarea id="body" placeholder='{ "key": "value" }'></textarea>
             </div>
-
-            <!-- History -->
             <div id="pane-history" class="pane">
                 <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <span style="opacity:0.6; font-size:10px; font-weight:600; text-transform:uppercase;">Recent Requests</span>
-                    <button class="btn-add-kv" onclick="clearHistory()" style="color:var(--vscode-errorForeground)">Clear All</button>
+                    <span style="opacity:0.6; font-size:10px; font-weight:600;">RECENT</span>
+                    <button id="clearHistoryBtn" style="background:none; border:none; color:var(--vscode-errorForeground); cursor:pointer; font-size:10px;">Clear</button>
                 </div>
                 <div id="history-list" class="list"></div>
             </div>
-
-            <!-- Collections -->
             <div id="pane-collections" class="pane">
-                <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <span style="opacity:0.6; font-size:10px; font-weight:600; text-transform:uppercase;">Saved Collections</span>
-                </div>
+                <div style="margin-bottom: 8px;"><span style="opacity:0.6; font-size:10px; font-weight:600;">COLLECTIONS</span></div>
                 <div id="collections-list" class="list"></div>
             </div>
         </div>
 
-        <!-- RESPONSE -->
         <div id="response" class="response">
             <div class="res-header">
                 <div class="res-status-wrap">
                     <div id="res-status" class="status-badge">200 OK</div>
                     <div class="res-tabs">
-                        <div class="rtab active" onclick="showResTab('body', event)">Body</div>
-                        <div class="rtab" onclick="showResTab('headers', event)">Headers</div>
+                        <div class="rtab active" id="resBodyTab">Body</div>
+                        <div class="rtab" id="resHeadersTab">Headers</div>
                     </div>
                 </div>
                 <div class="res-info">
@@ -490,299 +504,197 @@ export class ShellReqViewProvider implements vscode.WebviewViewProvider {
             <div id="res-headers" class="res-content" style="display:none"></div>
         </div>
 
-        <div id="loading" class="loading-overlay">
-            <div class="spinner"></div>
-        </div>
+        <div id="loading" class="loading-overlay"><div class="spinner"></div></div>
     </div>
 
-    <script>
-        const vscode = acquireVsCodeApi();
-        let state = vscode.getState() || { 
-            method: 'GET', 
-            url: '', 
-            headers: [{k: 'Content-Type', v: 'application/json', active: true}], 
-            params: [], 
-            body: '', 
-            history: [], 
-            collections: [] 
-        };
+    <script nonce="${nonce}">
+        (function() {
+            const vscode = acquireVsCodeApi();
+            let state = vscode.getState() || { 
+                method: 'GET', url: '', body: '', 
+                headers: [{k:'Content-Type',v:'application/json'}], 
+                params: [], history: [], collections: [] 
+            };
 
-        // DOM elements
-        const $ = id => document.getElementById(id);
-        const els = {
-            method: $('method'),
-            url: $('url'),
-            body: $('body'),
-            sendBtn: $('sendBtn'),
-            saveBtn: $('saveBtn'),
-            loading: $('loading'),
-            response: $('response'),
-            resStatus: $('res-status'),
-            resTime: $('res-time'),
-            resSize: $('res-size'),
-            resBody: $('res-body'),
-            resHeaders: $('res-headers'),
-            historyList: $('history-list'),
-            collectionsList: $('collections-list'),
-            paramsList: $('params-list'),
-            headersList: $('headers-list')
-        };
+            const $ = id => document.getElementById(id);
+            const els = {
+                method: $('method'), url: $('url'), body: $('body'),
+                sendBtn: $('sendBtn'), saveBtn: $('saveBtn'),
+                loading: $('loading'), response: $('response'),
+                resStatus: $('res-status'), resTime: $('res-time'), resSize: $('res-size'),
+                resBody: $('res-body'), resHeaders: $('res-headers'),
+                historyList: $('history-list'), collectionsList: $('collections-list'),
+                paramsList: $('params-list'), headersList: $('headers-list'),
+                resBodyTab: $('resBodyTab'), resHeadersTab: $('resHeadersTab'),
+                addParamBtn: $('addParamBtn'), addHeaderBtn: $('addHeaderBtn'),
+                clearHistoryBtn: $('clearHistoryBtn')
+            };
 
-        function saveState() {
-            state.method = els.method.value;
-            state.url = els.url.value;
-            state.body = els.body.value;
-            vscode.setState(state);
-        }
+            function save() { vscode.setState(state); }
 
-        // Init
-        function init() {
+            function renderKV(type) {
+                const container = els[type + 'List'];
+                container.innerHTML = '';
+                if (!state[type]) state[type] = [];
+                state[type].forEach((item, i) => {
+                    const row = document.createElement('div');
+                    row.className = 'kv-row';
+                    row.innerHTML = \`
+                        <input class="kv-input" placeholder="Key" value="\${item.k}">
+                        <input class="kv-input" placeholder="Value" value="\${item.v}">
+                        <button class="kv-del">✕</button>
+                    \`;
+                    const inputs = row.querySelectorAll('input');
+                    inputs[0].oninput = (e) => { state[type][i].k = e.target.value; save(); };
+                    inputs[1].oninput = (e) => { state[type][i].v = e.target.value; save(); };
+                    row.querySelector('.kv-del').onclick = () => { state[type].splice(i,1); renderKV(type); save(); };
+                    container.appendChild(row);
+                });
+            }
+
+            function renderList(type) {
+                const container = els[type + 'List'];
+                container.innerHTML = '';
+                if (!state[type] || state[type].length === 0) {
+                    container.innerHTML = '<div class="empty-state">No items</div>';
+                    return;
+                }
+                state[type].forEach((item, i) => {
+                    const el = document.createElement('div');
+                    el.className = 'list-item';
+                    el.innerHTML = \`<span class="badge" style="background:\${getColor(item.method)}">\${item.method}</span><span class="item-url">\${item.name || item.url}</span>\`;
+                    el.onclick = () => {
+                        els.method.value = item.method;
+                        els.url.value = item.url;
+                        els.body.value = item.body || '';
+                        state.method = item.method; state.url = item.url; state.body = item.body || '';
+                        state.headers = item.headers ? [...item.headers] : [];
+                        state.params = item.params ? [...item.params] : [];
+                        renderKV('headers'); renderKV('params');
+                        save();
+                        document.querySelector('.tab[data-pane="pane-params"]').click();
+                    };
+                    container.appendChild(el);
+                });
+            }
+
+            function getColor(m) {
+                return {GET:'#10b981',POST:'#a855f7',PUT:'#f59e0b',PATCH:'#6366f1',DELETE:'#ef4444'}[m] || '#888';
+            }
+
+            // Events
+            els.sendBtn.onclick = () => {
+                const h = {};
+                state.headers.forEach(x => { if(x.k.trim()) h[x.k.trim()] = x.v; });
+                let url = els.url.value.trim();
+                const ps = state.params.filter(x => x.k.trim());
+                if (ps.length) {
+                    const qs = ps.map(x => \`\${encodeURIComponent(x.k.trim())}=\${encodeURIComponent(x.v)}\`).join('&');
+                    url += (url.includes('?') ? '&' : '?') + qs;
+                }
+                if (!url) return;
+                els.loading.style.display = 'flex';
+                els.sendBtn.disabled = true;
+                els.response.style.display = 'none';
+                vscode.postMessage({ type: 'runRequest', value: { method: els.method.value, url, headers: h, body: els.body.value } });
+            };
+
+            els.saveBtn.onclick = () => {
+                const item = { method: els.method.value, url: els.url.value, headers: [...state.headers], params: [...state.params], body: els.body.value, name: els.url.value.split('/').pop() || 'Request' };
+                state.collections.unshift(item);
+                renderList('collections');
+                save();
+                vscode.postMessage({ type: 'updateState', value: { collections: state.collections } });
+                els.saveBtn.textContent = 'SAVED ✓';
+                setTimeout(() => els.saveBtn.textContent = 'SAVE', 2000);
+            };
+
+            els.addParamBtn.onclick = () => { state.params.push({k:'',v:''}); renderKV('params'); save(); };
+            els.addHeaderBtn.onclick = () => { state.headers.push({k:'',v:''}); renderKV('headers'); save(); };
+            els.clearHistoryBtn.onclick = () => { state.history = []; renderList('history'); save(); vscode.postMessage({ type: 'updateState', value: { history: [] } }); };
+
+            document.querySelectorAll('.tab').forEach(t => {
+                t.onclick = () => {
+                    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+                    document.querySelectorAll('.pane').forEach(x => x.classList.remove('active'));
+                    t.classList.add('active');
+                    $(t.dataset.pane).classList.add('active');
+                };
+            });
+
+            const switchResTab = (tab) => {
+                els.resBodyTab.classList.toggle('active', tab === 'body');
+                els.resHeadersTab.classList.toggle('active', tab === 'headers');
+                els.resBody.style.display = tab === 'body' ? 'block' : 'none';
+                els.resHeaders.style.display = tab === 'headers' ? 'block' : 'none';
+            };
+            els.resBodyTab.onclick = () => switchResTab('body');
+            els.resHeadersTab.onclick = () => switchResTab('headers');
+
+            els.method.onchange = (e) => { state.method = e.target.value; save(); };
+            els.url.oninput = (e) => { state.url = e.target.value; save(); };
+            els.body.oninput = (e) => { state.body = e.target.value; save(); };
+
+            window.addEventListener('message', e => {
+                const msg = e.data;
+                if (msg.type === 'syncState') {
+                    if (msg.value.collections) state.collections = msg.value.collections;
+                    if (msg.value.history) state.history = msg.value.history;
+                    renderList('collections'); renderList('history');
+                    save();
+                }
+                if (msg.type === 'response') {
+                    els.loading.style.display = 'none';
+                    els.sendBtn.disabled = false;
+                    els.response.style.display = 'flex';
+                    els.resStatus.textContent = \`\${msg.value.status} \${msg.value.statusText}\`;
+                    els.resStatus.className = 'status-badge ' + (msg.value.status < 300 ? 'status-2xx' : msg.value.status < 400 ? 'status-3xx' : 'status-4xx');
+                    els.resTime.textContent = \`\${msg.value.duration} ms\`;
+                    els.resSize.textContent = msg.value.size;
+                    try { const j = JSON.parse(msg.value.data); els.resBody.textContent = JSON.stringify(j, null, 2); }
+                    catch { els.resBody.textContent = msg.value.data || '(No Content)'; }
+                    let hStr = ''; Object.entries(msg.value.headers).forEach(([k,v]) => hStr += \`\${k}: \${v}\\n\`);
+                    els.resHeaders.textContent = hStr;
+                    switchResTab('body');
+                }
+                if (msg.type === 'addHistory') {
+                    const item = { method: msg.value.method, url: msg.value.url, headers: [...state.headers], params: [...state.params], body: els.body.value };
+                    state.history.unshift(item);
+                    if (state.history.length > 50) state.history.pop();
+                    renderList('history');
+                    save();
+                    vscode.postMessage({ type: 'updateState', value: { history: state.history } });
+                }
+                if (msg.type === 'error') {
+                    els.loading.style.display = 'none';
+                    els.sendBtn.disabled = false;
+                    els.response.style.display = 'flex';
+                    els.resStatus.textContent = 'ERROR';
+                    els.resStatus.className = 'status-badge status-4xx';
+                    els.resBody.textContent = typeof msg.value === 'string' ? msg.value : JSON.stringify(msg.value, null, 2);
+                    switchResTab('body');
+                }
+            });
+
+            // Start
             els.method.value = state.method;
             els.url.value = state.url;
             els.body.value = state.body;
-            renderKV('params');
-            renderKV('headers');
-            renderHistory();
-            renderCollections();
-        }
-
-        // Tabs
-        document.querySelectorAll('.tab').forEach(t => {
-            t.addEventListener('click', () => {
-                document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
-                document.querySelectorAll('.pane').forEach(x => x.classList.remove('active'));
-                t.classList.add('active');
-                $(t.dataset.pane).classList.add('active');
-            });
-        });
-
-        // Key-Value Editor
-        function addKV(type) {
-            state[type].push({k: '', v: '', active: true});
-            renderKV(type);
-            saveState();
-        }
-
-        function renderKV(type) {
-            const container = els[type + 'List'];
-            container.innerHTML = '';
-            if (state[type].length === 0) {
-                state[type].push({k: '', v: '', active: true});
-            }
-            state[type].forEach((item, i) => {
-                const row = document.createElement('div');
-                row.className = 'kv-row';
-                row.innerHTML = \`
-                    <input class="kv-input" placeholder="Key" value="\${item.k}" oninput="updateKV('\${type}', \${i}, 'k', this.value)">
-                    <input class="kv-input" placeholder="Value" value="\${item.v}" oninput="updateKV('\${type}', \${i}, 'v', this.value)">
-                    <button class="kv-del" onclick="removeKV('\${type}', \${i})">✕</button>
-                \`;
-                container.appendChild(row);
-            });
-        }
-
-        function updateKV(type, i, field, val) {
-            state[type][i][field] = val;
-            saveState();
-        }
-
-        function removeKV(type, i) {
-            state[type].splice(i, 1);
-            renderKV(type);
-            saveState();
-        }
-
-        // Request Logic
-        function getHeaders() {
-            const h = {};
-            state.headers.forEach(item => {
-                if (item.k.trim()) h[item.k.trim()] = item.v;
-            });
-            return h;
-        }
-
-        function buildUrl() {
-            let url = els.url.value.trim();
-            if (!url) return '';
-            const params = state.params.filter(p => p.k.trim());
-            if (params.length === 0) return url;
-            const qs = params.map(p => \`\${encodeURIComponent(p.k.trim())}=\${encodeURIComponent(p.v)}\`).join('&');
-            return url + (url.includes('?') ? '&' : '?') + qs;
-        }
-
-        els.sendBtn.addEventListener('click', () => {
-            const url = buildUrl();
-            if (!url) return;
-            
-            saveState();
-            els.loading.style.display = 'flex';
-            els.sendBtn.disabled = true;
-            els.response.style.display = 'none';
-            
-            vscode.postMessage({
-                type: 'runRequest',
-                value: {
-                    method: els.method.value,
-                    url: url,
-                    headers: getHeaders(),
-                    body: els.body.value
-                }
-            });
-        });
-
-        els.saveBtn.addEventListener('click', () => {
-            const item = {
-                method: els.method.value,
-                url: els.url.value,
-                headers: [...state.headers],
-                body: els.body.value,
-                params: [...state.params],
-                name: els.url.value.split('/').pop() || 'Untitled Request'
-            };
-            state.collections.unshift(item);
-            saveState();
-            renderCollections();
-            vscode.postMessage({ type: 'saveCollection', value: item });
-            
-            els.saveBtn.textContent = 'SAVED ✓';
-            setTimeout(() => els.saveBtn.textContent = 'SAVE', 2000);
-        });
-
-        // Message Handling
-        window.addEventListener('message', event => {
-            const msg = event.data;
-            if (msg.type === 'response') handleResponse(msg.value);
-            if (msg.type === 'error') handleError(msg.value);
-            if (msg.type === 'saveHistory') {
-                const historyItem = {
-                    method: msg.value.method,
-                    url: msg.value.url,
-                    headers: [...state.headers],
-                    params: [...state.params],
-                    body: els.body.value,
-                    timestamp: Date.now()
-                };
-                state.history.unshift(historyItem);
-                if (state.history.length > 50) state.history.pop();
-                saveState();
-                renderHistory();
-            }
-        });
-
-        function handleResponse(res) {
-            els.loading.style.display = 'none';
-            els.sendBtn.disabled = false;
-            els.response.style.display = 'flex';
-
-            const code = res.status;
-            els.resStatus.textContent = \`\${code} \${res.statusText}\`;
-            els.resStatus.className = 'status-badge ' + 
-                (code < 300 ? 'status-2xx' : code < 400 ? 'status-3xx' : 'status-4xx');
-            
-            els.resTime.textContent = \`\${res.duration} ms\`;
-            els.resSize.textContent = res.size;
-
-            // Format body
-            try {
-                const json = JSON.parse(res.data);
-                els.resBody.textContent = JSON.stringify(json, null, 2);
-            } catch {
-                els.resBody.textContent = res.data || '(No Content)';
-            }
-
-            // Headers
-            let hText = '';
-            for (const [k, v] of Object.entries(res.headers)) {
-                hText += \`\${k}: \${v}\\n\`;
-            }
-            els.resHeaders.textContent = hText;
-            
-            // Default to body tab
-            showResTab('body');
-        }
-
-        function handleError(err) {
-            els.loading.style.display = 'none';
-            els.sendBtn.disabled = false;
-            els.response.style.display = 'flex';
-            els.resStatus.textContent = 'ERROR';
-            els.resStatus.className = 'status-badge status-4xx';
-            els.resBody.textContent = err;
-        }
-
-        function showResTab(tab, e) {
-            document.querySelectorAll('.rtab').forEach(r => r.classList.remove('active'));
-            if (e) e.target.classList.add('active');
-            else document.querySelector(\`.rtab[onclick*="'\${tab}'"]\`).classList.add('active');
-            
-            els.resBody.style.display = tab === 'body' ? 'block' : 'none';
-            els.resHeaders.style.display = tab === 'headers' ? 'block' : 'none';
-        }
-
-        function clearHistory() {
-            state.history = [];
-            saveState();
-            renderHistory();
-        }
-
-        // Render Lists
-        function renderHistory() {
-            els.historyList.innerHTML = '';
-            if (state.history.length === 0) {
-                els.historyList.innerHTML = '<div class="empty-state">No history yet</div>';
-                return;
-            }
-            state.history.forEach((item, i) => {
-                const el = document.createElement('div');
-                el.className = 'list-item';
-                el.innerHTML = \`
-                    <span class="badge" style="background:\${getMethodColor(item.method)}">\${item.method}</span>
-                    <span class="item-url">\${item.url}</span>
-                \`;
-                el.onclick = () => loadItem(item);
-                els.historyList.appendChild(el);
-            });
-        }
-
-        function renderCollections() {
-            els.collectionsList.innerHTML = '';
-            if (state.collections.length === 0) {
-                els.collectionsList.innerHTML = '<div class="empty-state">No saved requests</div>';
-                return;
-            }
-            state.collections.forEach((item, i) => {
-                const el = document.createElement('div');
-                el.className = 'list-item';
-                el.innerHTML = \`
-                    <span class="badge" style="background:\${getMethodColor(item.method)}">\${item.method}</span>
-                    <span class="item-url">\${item.name || item.url}</span>
-                \`;
-                el.onclick = () => loadItem(item);
-                els.collectionsList.appendChild(el);
-            });
-        }
-
-        function loadItem(item) {
-            els.method.value = item.method;
-            els.url.value = item.url;
-            els.body.value = item.body || '';
-            state.headers = item.headers ? JSON.parse(JSON.stringify(item.headers)) : [];
-            state.params = item.params ? JSON.parse(JSON.stringify(item.params)) : [];
-            renderKV('headers');
-            renderKV('params');
-            saveState();
-            // Switch to Params tab
-            document.querySelector('.tab[data-pane="pane-params"]').click();
-        }
-
-        function getMethodColor(m) {
-            const colors = { GET: '#10b981', POST: '#a855f7', PUT: '#f59e0b', PATCH: '#6366f1', DELETE: '#ef4444' };
-            return colors[m] || '#888';
-        }
-
-        init();
+            renderKV('headers'); renderKV('params');
+            renderList('history'); renderList('collections');
+            vscode.postMessage({ type: 'ready' });
+        })();
     </script>
 </body>
 </html>`;
     }
+}
+
+function getNonce() {
+    let text = '';
+    const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    for (let i = 0; i < 32; i++) {
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+    }
+    return text;
 }
