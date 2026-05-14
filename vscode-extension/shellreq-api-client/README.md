@@ -43,6 +43,10 @@ Look for the **ShellReq** icon in the VS Code Activity Bar (usually on the far l
 
 ## Release Notes
 
+### 0.1.0
+- **Official Release**: Official release of the Sidebar API Client with full testing capabilities.
+- Polished UI and state management.
+
 ### 0.0.3
 - **Massive UI Overhaul**: Introduced the Sidebar Webview for a seamless testing experience.
 - **Collections & History**: Added persistent storage for saved and recent requests.

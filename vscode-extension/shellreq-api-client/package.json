@@ -2,7 +2,7 @@
   "name": "shellreq-api-client",
   "displayName": "ShellReq API Client",
   "description": "Lightweight API testing extension powered by ShellReq with JSON response formatting and easy execution.",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "publisher": "maheshshinde9100",
   "author": "Mahesh Shinde (maheshshinde9100)",
   "icon": "icon.png",

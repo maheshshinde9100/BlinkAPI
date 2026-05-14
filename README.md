@@ -51,6 +51,19 @@ shellreq ui
 
 ---
 
+## VS Code Extension 
+
+ShellReq is now available directly inside Visual Studio Code! Enjoy a full-featured API workspace in your sidebar, just like Thunder Client.
+
+[**Download ShellReq API Client for VS Code**](https://marketplace.visualstudio.com/items?itemName=maheshshinde9100.shellreq-api-client)
+
+**Extension Features:**
+- Persistent Collections & Auto-History.
+- Sidebar GUI for seamless testing without leaving the editor.
+- Multi-Method & Payload Body support.
+
+---
+
 ## Installation
 
 Install ShellReq globally to use it anywhere:
