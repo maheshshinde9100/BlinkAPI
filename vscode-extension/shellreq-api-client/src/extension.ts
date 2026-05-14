@@ -48,6 +48,13 @@ export function activate(context: vscode.ExtensionContext) {
             vscode.commands.executeCommand('shellreq.clientView.focus');
         })
     );
+
+    // Handle messages from Webview for Saving Collections
+    provider.onDidSaveCollection((item: any) => {
+        const collections = context.workspaceState.get<any[]>('shellreq.collections', []);
+        collections.push(item);
+        context.workspaceState.update('shellreq.collections', collections);
+    });
 }
 
 export function deactivate() {}

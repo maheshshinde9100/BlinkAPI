@@ -1,43 +1,56 @@
 # ShellReq API Client
 
-A lightweight API testing extension for Visual Studio Code powered by ShellReq.
+A lightweight, powerful API testing extension for Visual Studio Code, inspired by tools like Thunder Client and powered by the ShellReq engine.
 
-## Features
+## Key Features
 
-- **Quick API Testing**: Run HTTP requests directly from VS Code using the `ShellReq: Run Request` command
-- **JSON Response Display**: Automatically formats and displays API responses in a new editor window
-- **Simple Interface**: Enter any API URL and get instant results
+- **Sidebar API Testing**: A full-featured interface in your VS Code sidebar. No more context switching.
+- **Save & Organize**: Save your most-used requests into **Collections** for instant access.
+- **Automatic History**: Automatically tracks your recently sent requests.
+- **Smart Formatting**: Pretty-prints JSON responses and provides detailed info like status code, execution time, and payload size.
+- **Multi-Method Support**: Easily switch between GET, POST, PUT, DELETE, and PATCH.
+- **State Persistence**: Your URL, headers, and body are remembered even if you switch files or close VS Code.
 
 ## Requirements
 
-- [ShellReq](https://github.com/maheshshinde9100/ShellReq) must be installed on your system
-- Node.js (for ShellReq)
+- [ShellReq](https://github.com/maheshshinde9100/ShellReq) installed globally (for CLI fallback)
+  ```bash
+  npm install -g shellreq
+  ```
 
-### Installing ShellReq
+## How to Use
 
-```bash
-npm install -g shellreq
-```
+### 1. Open the API Client
+Look for the **ShellReq** icon in the VS Code Activity Bar (usually on the far left). Click it to open the API Client sidebar.
 
-## Usage
+### 2. Basic Request
+- **Select Method**: Choose from the dropdown (default is GET).
+- **Enter URL**: Type your API endpoint (e.g., `https://api.example.com/data`).
+- **Send**: Click the **SEND** button to execute. Results will appear in the response panel at the bottom.
 
-1. Open the Command Palette in VS Code (`Ctrl+Shift+P` or `Cmd+Shift+P`)
-2. Search for `ShellReq: Run Request`
-3. Enter your API URL when prompted
-4. The response will be displayed in a new editor window formatted as JSON
+### 3. Headers and Body
+- Click the **Headers** tab to add key-value pairs (e.g., `Content-Type: application/json`).
+- If using POST/PUT, click the **Body** tab to enter your JSON payload.
 
-## Example
+### 4. Manage History & Collections
+- **History**: The last 20 requests are automatically saved in the **History** tab. Click any item to reload it.
+- **Collections**: Click the **SAVE** button next to "SEND" to permanently save the current request into your Collections.
 
-Try it with a sample API:
-```
-https://jsonplaceholder.typicode.com/posts/1
-```
+## Commands
+
+- `ShellReq: Focus API Client`: Quickly jump to the API sidebar.
+- `ShellReq: Run Request`: Quick input-box based request (legacy shortcut).
 
 ## Release Notes
 
-### 0.0.1
+### 0.0.3
+- **Massive UI Overhaul**: Introduced the Sidebar Webview for a seamless testing experience.
+- **Collections & History**: Added persistent storage for saved and recent requests.
+- **Improved Performance**: Switched core requests to Axios for better reliability.
 
-Initial release of ShellReq API Client
-- Basic API request execution
-- JSON response formatting
-- Error handling and display
+### 0.0.2
+- Initial Sidebar prototyping and basic request handling.
+
+### 0.0.1
+- Original CLI-based version release.
+

@@ -6,6 +6,8 @@ export class ShellReqViewProvider implements vscode.WebviewViewProvider {
     public static readonly viewType = 'shellreq.clientView';
 
     private _view?: vscode.WebviewView;
+    private _onDidSaveCollection = new vscode.EventEmitter<any>();
+    public readonly onDidSaveCollection = this._onDidSaveCollection.event;
 
     constructor(
         private readonly _extensionUri: vscode.Uri,
@@ -34,6 +36,11 @@ export class ShellReqViewProvider implements vscode.WebviewViewProvider {
                         this._handleRequest(data.value);
                         break;
                     }
+                case 'saveCollection':
+                    {
+                        this._onDidSaveCollection.fire(data.value);
+                        break;
+                    }
             }
         });
     }
@@ -44,11 +51,11 @@ export class ShellReqViewProvider implements vscode.WebviewViewProvider {
         }
 
         try {
-            this._view.webview.postMessage({ type: 'status', value: 'Sending request...' });
+            this._view.webview.postMessage({ type: 'status', value: 'Sending...' });
             
             const startedAt = Date.now();
             let parsedBody = undefined;
-            if (requestConfig.body) {
+            if (requestConfig.body && (requestConfig.method !== 'GET' && requestConfig.method !== 'DELETE')) {
                 try {
                     parsedBody = JSON.parse(requestConfig.body);
                 } catch (e) {
@@ -56,28 +63,45 @@ export class ShellReqViewProvider implements vscode.WebviewViewProvider {
                 }
             }
 
+            // Headers parsing
+            const headers = this._parseHeaders(requestConfig.headers);
+
             const response = await axios({
                 method: requestConfig.method,
                 url: requestConfig.url,
-                headers: this._parseHeaders(requestConfig.headers),
+                headers: headers,
                 data: parsedBody,
                 validateStatus: () => true,
-                transformResponse: [(data) => data] // Keep as string for formatting
+                transformResponse: [(data) => data] 
             });
 
             const duration = Date.now() - startedAt;
+            const size = this._estimateSize(response.data);
+
+            const responseData = {
+                status: response.status,
+                statusText: response.statusText,
+                headers: response.headers,
+                data: response.data,
+                duration: duration,
+                size: size
+            };
 
             this._view.webview.postMessage({
                 type: 'response',
+                value: responseData
+            });
+
+            // Save to history (we could use message to extension if we want global history)
+            this._view.webview.postMessage({
+                type: 'saveHistory',
                 value: {
-                    status: response.status,
-                    statusText: response.statusText,
-                    headers: response.headers,
-                    data: response.data,
-                    duration: duration,
-                    size: this._estimateSize(response.data)
+                    method: requestConfig.method,
+                    url: requestConfig.url,
+                    time: new Date().toLocaleTimeString()
                 }
             });
+
         } catch (error: any) {
             this._view.webview.postMessage({
                 type: 'error',
@@ -105,6 +129,7 @@ export class ShellReqViewProvider implements vscode.WebviewViewProvider {
     }
 
     private _estimateSize(data: any): string {
+        if (!data) return '0 B';
         const bytes = typeof data === 'string' ? data.length : JSON.stringify(data).length;
         if (bytes < 1024) { return `${bytes} B`; }
         return `${(bytes / 1024).toFixed(2)} KB`;
@@ -119,352 +144,371 @@ export class ShellReqViewProvider implements vscode.WebviewViewProvider {
 				<title>ShellReq API Client</title>
 				<style>
 					:root {
-						--primary-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
-                        --bg-dark: #0f172a;
-                        --border-color: rgba(255, 255, 255, 0.1);
+						--tc-primary: #6366f1;
+                        --tc-accent: #a855f7;
+                        --tc-bg: var(--vscode-sideBar-background);
+                        --tc-input-bg: var(--vscode-input-background);
+                        --tc-border: var(--vscode-widget-border, rgba(255,255,255,0.1));
 					}
 					body {
 						padding: 0;
 						margin: 0;
 						color: var(--vscode-foreground);
 						font-family: var(--vscode-font-family);
-                        font-size: 13px;
-                        background: var(--vscode-sideBar-background);
+                        font-size: 12px;
+                        background: var(--tc-bg);
+                        overflow: hidden;
 					}
-					.app-container {
+                    * { box-sizing: border-box; }
+					
+                    .app {
 						display: flex;
 						flex-direction: column;
 						height: 100vh;
 					}
-					.header {
-						padding: 16px;
-						background: var(--primary-gradient);
-						color: white;
-						display: flex;
-						align-items: center;
-						gap: 10px;
-                        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-                        z-index: 10;
-					}
-                    .header h1 {
-                        margin: 0;
-                        font-size: 16px;
-                        font-weight: 800;
-                        letter-spacing: 0.5px;
-                    }
-                    .header .v {
-                        font-size: 10px;
-                        opacity: 0.8;
-                        background: rgba(255,255,255,0.2);
-                        padding: 1px 5px;
-                        border-radius: 4px;
-                    }
-                    .main-content {
-                        flex: 1;
-                        overflow-y: auto;
-                        padding: 16px;
-                        display: flex;
-                        flex-direction: column;
-                        gap: 16px;
-                    }
-					.input-row {
-						display: flex;
-						gap: 2px;
-                        background: var(--vscode-input-background);
-                        border: 1px solid var(--vscode-input-border);
-                        border-radius: 6px;
-                        overflow: hidden;
-                        transition: border-color 0.2s;
-					}
-                    .input-row:focus-within {
-                        border-color: var(--vscode-focusBorder);
-                    }
-					select, input, textarea {
-						background: transparent;
-						color: var(--vscode-input-foreground);
-						border: none;
-						padding: 8px 10px;
-						outline: none;
-					}
-					.method-select {
-						width: 90px;
-                        font-weight: bold;
-                        color: #a855f7;
-                        border-right: 1px solid var(--vscode-input-border);
-                        cursor: pointer;
-					}
-					.url-input {
-						flex-grow: 1;
-                        font-family: var(--vscode-editor-font-family);
-					}
 					
-                    .tabs {
+                    .url-bar {
+                        padding: 10px;
                         display: flex;
-                        border-bottom: 1px solid var(--border-color);
-                        margin-bottom: 8px;
+                        gap: 4px;
+                        border-bottom: 1px solid var(--tc-border);
+                        background: var(--vscode-editor-background);
                     }
-                    .tab {
-                        padding: 8px 12px;
+                    
+                    .method-select {
+                        background: var(--tc-input-bg);
+                        color: var(--tc-accent);
+                        border: 1px solid var(--vscode-input-border);
+                        border-radius: 4px;
+                        padding: 4px 6px;
+                        font-weight: 800;
+                        outline: none;
+                        cursor: pointer;
+                    }
+                    
+                    .url-input-container {
+                        flex: 1;
+                        position: relative;
+                    }
+                    
+                    .url-input {
+                        width: 100%;
+                        background: var(--tc-input-bg);
+                        color: var(--vscode-input-foreground);
+                        border: 1px solid var(--vscode-input-border);
+                        border-radius: 4px;
+                        padding: 6px 8px;
+                        outline: none;
+                        font-family: var(--vscode-editor-font-family);
+                    }
+                    
+                    .btn-send {
+                        background: var(--tc-primary);
+                        color: white;
+                        border: none;
+                        border-radius: 4px;
+                        padding: 0 12px;
+                        font-weight: bold;
+                        cursor: pointer;
+                        text-transform: uppercase;
+                        font-size: 11px;
+                        transition: filter 0.2s;
+                    }
+                    
+                    .btn-send:hover { filter: brightness(1.1); }
+                    
+                    .btn-save {
+                        background: transparent;
+                        color: var(--tc-primary);
+                        border: 1px solid var(--tc-primary);
+                        border-radius: 4px;
+                        padding: 0 8px;
+                        font-weight: bold;
+                        cursor: pointer;
+                        font-size: 10px;
+                        margin-left: 4px;
+                    }
+
+                    .main-tabs {
+                        display: flex;
+                        background: var(--vscode-editor-background);
+                        border-bottom: 1px solid var(--tc-border);
+                        padding: 0 10px;
+                        overflow-x: auto;
+                    }
+                    
+                    .tab-item {
+                        padding: 8px 10px;
                         cursor: pointer;
                         opacity: 0.6;
                         border-bottom: 2px solid transparent;
-                        font-weight: 500;
+                        font-weight: 600;
+                        white-space: nowrap;
                     }
-                    .tab.active {
-                        opacity: 1;
-                        border-bottom-color: #6366f1;
-                        color: #6366f1;
-                    }
-                    .tab-content {
-                        display: none;
-                    }
-                    .tab-content.active {
-                        display: block;
-                    }
-
-					textarea {
-						width: 100%;
-						resize: vertical;
-						min-height: 120px;
-						font-family: var(--vscode-editor-font-family);
-                        background: var(--vscode-input-background);
-                        border: 1px solid var(--vscode-input-border);
-                        border-radius: 6px;
-                        padding: 8px;
-					}
                     
-                    .actions {
-                        display: flex;
-                        justify-content: flex-end;
+                    .tab-item.active {
+                        opacity: 1;
+                        border-bottom-color: var(--tc-primary);
+                        color: var(--tc-primary);
                     }
-
-					.btn-send {
-						background: var(--primary-gradient);
-						color: white;
-						border: none;
-						padding: 10px 24px;
-						cursor: pointer;
-						font-weight: 700;
-                        border-radius: 6px;
-                        transition: transform 0.1s, opacity 0.2s;
-                        text-transform: uppercase;
-                        letter-spacing: 1px;
+                    
+                    .content {
+                        flex: 1;
+                        overflow-y: auto;
+                        padding: 10px;
+                    }
+                    
+                    .tab-pane { display: none; }
+                    .tab-pane.active { display: block; }
+                    
+                    textarea {
                         width: 100%;
-					}
-					.btn-send:hover {
-						opacity: 0.9;
-                        transform: translateY(-1px);
-					}
-                    .btn-send:active {
-                        transform: translateY(0);
+                        min-height: 120px;
+                        background: var(--tc-input-bg);
+                        color: var(--vscode-input-foreground);
+                        border: 1px solid var(--vscode-input-border);
+                        border-radius: 4px;
+                        padding: 8px;
+                        font-family: var(--vscode-editor-font-family);
+                        resize: vertical;
+                        outline: none;
                     }
-
-					.response-section {
-						margin-top: 8px;
-						display: none;
-                        background: var(--vscode-editor-background);
-                        border-radius: 8px;
-                        border: 1px solid var(--border-color);
-                        overflow: hidden;
-					}
-					.response-header {
-						display: flex;
-						justify-content: space-between;
-                        align-items: center;
-						padding: 10px 14px;
-                        background: rgba(255,255,255,0.03);
-                        border-bottom: 1px solid var(--border-color);
-					}
-					.status-badge {
-						padding: 3px 8px;
-						border-radius: 4px;
-						font-weight: 700;
-                        font-size: 11px;
-					}
-					.status-2xx { background: #10b981; color: white; }
-					.status-4xx, .status-5xx { background: #ef4444; color: white; }
-					
-                    .response-info {
+                    
+                    /* Response Section */
+                    .response-container {
+                        height: 45%;
+                        border-top: 1px solid var(--tc-border);
                         display: flex;
-                        gap: 12px;
-                        font-size: 11px;
+                        flex-direction: column;
+                        background: var(--vscode-editor-background);
+                        box-shadow: 0 -4px 10px rgba(0,0,0,0.1);
+                    }
+                    
+                    .res-header {
+                        padding: 8px 12px;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        border-bottom: 1px solid var(--tc-border);
+                        background: rgba(255,255,255,0.02);
+                    }
+                    
+                    .status-badge {
+                        padding: 2px 6px;
+                        border-radius: 4px;
+                        font-weight: 800;
+                        font-size: 10px;
+                    }
+                    .s-ok { background: #10b981; color: #fff; }
+                    .s-err { background: #ef4444; color: #fff; }
+                    
+                    .res-info {
+                        display: flex;
+                        gap: 10px;
+                        font-size: 10px;
                         opacity: 0.6;
                     }
-
-					.response-body {
-						padding: 12px;
-						overflow: auto;
-						max-height: 500px;
-						white-space: pre-wrap;
-						font-family: var(--vscode-editor-font-family);
-                        font-size: 12px;
-					}
                     
+                    .res-content {
+                        flex: 1;
+                        overflow: auto;
+                        padding: 10px;
+                        font-family: var(--vscode-editor-font-family);
+                        white-space: pre-wrap;
+                        font-size: 11px;
+                        background: var(--vscode-editor-background);
+                    }
+
                     .loading {
+                        position: absolute;
+                        right: 8px;
+                        top: 50%;
+                        transform: translateY(-50%);
                         display: none;
-                        text-align: center;
-                        padding: 20px;
                     }
+                    
                     .spinner {
-                        width: 24px;
-                        height: 24px;
-                        border: 3px solid rgba(255,255,255,0.3);
+                        width: 14px;
+                        height: 14px;
+                        border: 2px solid rgba(255,255,255,0.2);
+                        border-top-color: var(--tc-primary);
                         border-radius: 50%;
-                        border-top-color: #6366f1;
-                        animation: spin 1s ease-in-out infinite;
-                        margin: 0 auto 10px;
+                        animation: spin 0.8s linear infinite;
                     }
-                    @keyframes spin {
-                        to { transform: rotate(360deg); }
-                    }
+                    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-                    .error-box {
-                        background: rgba(239, 68, 68, 0.1);
-                        border-left: 3px solid #ef4444;
-                        padding: 12px;
-                        color: #ef4444;
-                        margin-top: 10px;
-                        display: none;
-                        font-size: 12px;
+                    .history-item {
+                        padding: 8px;
                         border-radius: 4px;
+                        cursor: pointer;
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                        margin-bottom: 4px;
+                        background: rgba(255,255,255,0.03);
+                        border: 1px solid transparent;
                     }
-
-                    ::-webkit-scrollbar { width: 8px; }
-                    ::-webkit-scrollbar-track { background: transparent; }
-                    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
-                    ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+                    .history-item:hover { background: rgba(255,255,255,0.08); border-color: var(--tc-primary); }
+                    .history-method { font-weight: 800; font-size: 9px; min-width: 35px; text-align: center; border-radius: 3px; padding: 1px; }
+                    .history-url { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; opacity: 0.8; font-size: 11px; }
 				</style>
 			</head>
 			<body>
-				<div class="app-container">
-                    <div class="header">
-                        <h1>SHELLREQ</h1>
-                        <span class="v">v0.2.0</span>
+				<div class="app">
+                    <!-- URL BAR -->
+                    <div class="url-bar">
+                        <select id="method" class="method-select">
+                            <option value="GET">GET</option>
+                            <option value="POST">POST</option>
+                            <option value="PUT">PUT</option>
+                            <option value="PATCH">PATCH</option>
+                            <option value="DELETE">DELETE</option>
+                        </select>
+                        <div class="url-input-container">
+                            <input type="text" id="url" class="url-input" placeholder="Enter API URL">
+                            <div id="loading" class="loading"><div class="spinner"></div></div>
+                        </div>
+                        <button id="sendBtn" class="btn-send">SEND</button>
+                        <button id="saveBtn" class="btn-save" title="Save to Collections">SAVE</button>
                     </div>
 
-                    <div class="main-content">
-                        <div class="input-row">
-                            <select id="method" class="method-select">
-                                <option value="GET">GET</option>
-                                <option value="POST">POST</option>
-                                <option value="PUT">PUT</option>
-                                <option value="PATCH">PATCH</option>
-                                <option value="DELETE">DELETE</option>
-                            </select>
-                            <input type="text" id="url" class="url-input" placeholder="Enter API URL..." value="https://jsonplaceholder.typicode.com/todos/1">
+                    <!-- TABS -->
+                    <div class="main-tabs">
+                        <div class="tab-item active" data-tab="tab-headers">Headers</div>
+                        <div class="tab-item" data-tab="tab-body">Body</div>
+                        <div class="tab-item" data-tab="tab-history">History</div>
+                        <div class="tab-item" data-tab="tab-collections">Collections</div>
+                    </div>
+
+                    <div class="content">
+                        <!-- HEADERS TAB -->
+                        <div id="tab-headers" class="tab-pane active">
+                            <textarea id="headers" placeholder="Key: Value&#10;Authorization: Bearer ..."></textarea>
                         </div>
                         
-                        <div>
-                            <div class="tabs">
-                                <div class="tab active" data-target="headers-tab">Headers</div>
-                                <div class="tab" id="body-tab-btn" data-target="body-tab">Body</div>
-                                <div class="tab" data-target="auth-tab">Auth</div>
-                            </div>
-
-                            <div id="headers-tab" class="tab-content active">
-                                <textarea id="headers" placeholder="Key: Value&#10;Authorization: Bearer ..."></textarea>
-                            </div>
-
-                            <div id="body-tab" class="tab-content">
-                                <textarea id="body" placeholder='{ "key": "value" }'></textarea>
-                            </div>
-
-                            <div id="auth-tab" class="tab-content">
-                                <p style="opacity: 0.6; font-style: italic;">Auth presets coming soon...</p>
-                            </div>
+                        <!-- BODY TAB -->
+                        <div id="tab-body" class="tab-pane">
+                            <textarea id="body" placeholder='{ "key": "value" }'></textarea>
                         </div>
 
-                        <div class="actions">
-                            <button id="sendBtn" class="btn-send">Send Request</button>
+                        <!-- HISTORY TAB -->
+                        <div id="tab-history" class="tab-pane">
+                            <div id="history-list"></div>
                         </div>
 
-                        <div id="loading" class="loading">
-                            <div class="spinner"></div>
-                            <div>Executing Request...</div>
+                        <!-- COLLECTIONS TAB -->
+                        <div id="tab-collections" class="tab-pane">
+                            <div id="collections-list"></div>
                         </div>
+                    </div>
 
-                        <div id="error" class="error-box"></div>
-
-                        <div id="response" class="response-section">
-                            <div class="response-header">
-                                <div>
-                                    <span id="resStatus" class="status-badge">200 OK</span>
-                                </div>
-                                <div class="response-info">
-                                    <span id="resTime">0ms</span>
-                                    <span id="resSize">0 B</span>
-                                </div>
+                    <!-- RESPONSE -->
+                    <div id="response" class="response-container" style="display: none;">
+                        <div class="res-header">
+                            <div>
+                                <span id="resStatus" class="status-badge s-ok">200 OK</span>
                             </div>
-                            <div id="resBody" class="response-body"></div>
+                            <div class="res-info">
+                                <span id="resTime">0ms</span>
+                                <span id="resSize">0 B</span>
+                            </div>
                         </div>
+                        <div id="resBody" class="res-content"></div>
                     </div>
                 </div>
 
 				<script>
 					const vscode = acquireVsCodeApi();
 					
-                    // State preservation
+                    // State
                     let state = vscode.getState() || {
                         method: 'GET',
                         url: 'https://jsonplaceholder.typicode.com/todos/1',
                         headers: '',
-                        body: ''
+                        body: '',
+                        history: [],
+                        collections: []
+                    };
+
+                    const els = {
+                        method: document.getElementById('method'),
+                        url: document.getElementById('url'),
+                        headers: document.getElementById('headers'),
+                        body: document.getElementById('body'),
+                        sendBtn: document.getElementById('sendBtn'),
+                        saveBtn: document.getElementById('saveBtn'),
+                        loading: document.getElementById('loading'),
+                        response: document.getElementById('response'),
+                        resStatus: document.getElementById('resStatus'),
+                        resTime: document.getElementById('resTime'),
+                        resSize: document.getElementById('resSize'),
+                        resBody: document.getElementById('resBody'),
+                        historyList: document.getElementById('history-list'),
+                        collectionsList: document.getElementById('collections-list')
                     };
 
                     function updateState() {
                         vscode.setState({
-                            method: document.getElementById('method').value,
-                            url: document.getElementById('url').value,
-                            headers: document.getElementById('headers').value,
-                            body: document.getElementById('body').value
+                            method: els.method.value,
+                            url: els.url.value,
+                            headers: els.headers.value,
+                            body: els.body.value,
+                            history: state.history,
+                            collections: state.collections
                         });
                     }
 
-					const methodSelect = document.getElementById('method');
-					const urlInput = document.getElementById('url');
-					const headersInput = document.getElementById('headers');
-					const bodyInput = document.getElementById('body');
-					const sendBtn = document.getElementById('sendBtn');
-					const responseContainer = document.getElementById('response');
-                    const loadingIndicator = document.getElementById('loading');
-                    const errorDisplay = document.getElementById('error');
-                    
-                    // Initialization
-                    methodSelect.value = state.method;
-                    urlInput.value = state.url;
-                    headersInput.value = state.headers;
-                    bodyInput.value = state.body;
+                    // Init
+                    els.method.value = state.method;
+                    els.url.value = state.url;
+                    els.headers.value = state.headers;
+                    els.body.value = state.body;
+                    renderHistory();
+                    renderCollections();
 
-                    // Tab System
-                    document.querySelectorAll('.tab').forEach(tab => {
+                    // Tabs
+                    document.querySelectorAll('.tab-item').forEach(tab => {
                         tab.addEventListener('click', () => {
-                            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                            
+                            document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+                            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
                             tab.classList.add('active');
-                            document.getElementById(tab.dataset.target).classList.add('active');
+                            const target = document.getElementById(tab.dataset.tab);
+                            if (target) target.classList.add('active');
                         });
                     });
 
-					sendBtn.addEventListener('click', () => {
-						const url = urlInput.value;
+					els.sendBtn.addEventListener('click', () => {
+						const url = els.url.value;
 						if (!url) return;
 
                         updateState();
-                        loadingIndicator.style.display = 'block';
-                        errorDisplay.style.display = 'none';
-                        responseContainer.style.display = 'none';
+                        els.loading.style.display = 'block';
+                        els.response.style.display = 'none';
 
 						vscode.postMessage({
 							type: 'runRequest',
 							value: {
-								method: methodSelect.value,
+								method: els.method.value,
 								url: url,
-								headers: headersInput.value,
-								body: bodyInput.value
+								headers: els.headers.value,
+								body: els.body.value
 							}
 						});
 					});
+
+                    els.saveBtn.addEventListener('click', () => {
+                        const item = {
+                            method: els.method.value,
+                            url: els.url.value,
+                            headers: els.headers.value,
+                            body: els.body.value,
+                            name: els.url.value.split('/').pop() || 'New Request'
+                        };
+                        state.collections.push(item);
+                        updateState();
+                        renderCollections();
+                        vscode.postMessage({ type: 'saveCollection', value: item });
+                    });
 
 					window.addEventListener('message', event => {
 						const message = event.data;
@@ -475,39 +519,84 @@ export class ShellReqViewProvider implements vscode.WebviewViewProvider {
                             case 'error':
                                 showError(message.value);
                                 break;
+                            case 'saveHistory':
+                                addToHistory(message.value);
+                                break;
 						}
 					});
 
                     function showError(err) {
-                        loadingIndicator.style.display = 'none';
-                        errorDisplay.innerText = err;
-                        errorDisplay.style.display = 'block';
+                        els.loading.style.display = 'none';
+                        els.response.style.display = 'flex';
+                        els.resStatus.innerText = 'ERROR';
+                        els.resStatus.className = 'status-badge s-err';
+                        els.resBody.innerText = err;
                     }
 
 					function showResponse(res) {
-						loadingIndicator.style.display = 'none';
-						responseContainer.style.display = 'block';
+						els.loading.style.display = 'none';
+						els.response.style.display = 'flex';
 						
-						const statusBadge = document.getElementById('resStatus');
-						statusBadge.innerText = res.status + ' ' + res.statusText;
-						statusBadge.className = 'status-badge ' + (res.status >= 200 && res.status < 300 ? 'status-2xx' : (res.status >= 400 ? 'status-4xx' : ''));
+						els.resStatus.innerText = res.status + ' ' + res.statusText;
+						els.resStatus.className = 'status-badge ' + (res.status >= 200 && res.status < 300 ? 's-ok' : 's-err');
 						
-						document.getElementById('resTime').innerText = res.duration + 'ms';
-						document.getElementById('resSize').innerText = res.size;
+						els.resTime.innerText = res.duration + 'ms';
+						els.resSize.innerText = res.size;
 						
-						const bodyDisplay = document.getElementById('resBody');
 						try {
 							const json = JSON.parse(res.data);
-							bodyDisplay.innerText = JSON.stringify(json, null, 2);
+							els.resBody.innerText = JSON.stringify(json, null, 2);
 						} catch (e) {
-							bodyDisplay.innerText = res.data;
+							els.resBody.innerText = res.data;
 						}
 					}
 
-                    // Auto-save state on input
-                    [methodSelect, urlInput, headersInput, bodyInput].forEach(el => {
-                        el.addEventListener('input', updateState);
-                    });
+                    function addToHistory(item) {
+                        state.history.unshift(item);
+                        if (state.history.length > 20) state.history.pop();
+                        updateState();
+                        renderHistory();
+                    }
+
+                    function renderHistory() {
+                        els.historyList.innerHTML = '';
+                        state.history.forEach(item => {
+                            const div = document.createElement('div');
+                            div.className = 'history-item';
+                            div.innerHTML = \`<span class="history-method" style="background: \${getMethodBg(item.method)}; color: #fff">\${item.method}</span><span class="history-url">\${item.url}</span>\`;
+                            div.onclick = () => {
+                                els.method.value = item.method;
+                                els.url.value = item.url;
+                                updateState();
+                            };
+                            els.historyList.appendChild(div);
+                        });
+                    }
+
+                    function renderCollections() {
+                        els.collectionsList.innerHTML = '';
+                        state.collections.forEach((item, idx) => {
+                            const div = document.createElement('div');
+                            div.className = 'history-item';
+                            div.innerHTML = \`<span class="history-method" style="background: \${getMethodBg(item.method)}; color: #fff">\${item.method}</span><span class="history-url">\${item.name}</span>\`;
+                            div.onclick = () => {
+                                els.method.value = item.method;
+                                els.url.value = item.url;
+                                els.headers.value = item.headers;
+                                els.body.value = item.body;
+                                updateState();
+                            };
+                            els.collectionsList.appendChild(div);
+                        });
+                    }
+
+                    function getMethodBg(m) {
+                        const colors = { GET: '#10b981', POST: '#a855f7', PUT: '#f59e0b', DELETE: '#ef4444', PATCH: '#6366f1' };
+                        return colors[m] || '#888';
+                    }
+
+                    // Auto-save
+                    [els.method, els.url, els.headers, els.body].forEach(el => el.addEventListener('input', updateState));
 				</script>
 			</body>
 			</html>`;
