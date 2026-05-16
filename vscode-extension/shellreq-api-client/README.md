@@ -1,70 +1,144 @@
 # ShellReq API Client
 
-[![Version](https://img.shields.io/visual-studio-marketplace/v/maheshshinde9100.shellreq-api-client?style=flat-square)](https://marketplace.visualstudio.com/items?itemName=maheshshinde9100.shellreq-api-client)
-[![Installs](https://img.shields.io/visual-studio-marketplace/i/maheshshinde9100.shellreq-api-client?style=flat-square)](https://marketplace.visualstudio.com/items?itemName=maheshshinde9100.shellreq-api-client)
+<div align="center">
 
-A powerful, lightning-fast API testing client built natively for Visual Studio Code. ShellReq provides a high-performance, minimalist interface to test your endpoints without the bloat of external applications.
+[![Version](https://vsmarketplacebadges.dev/version-short/maheshshinde9100.shellreq-api-client.svg?style=for-the-badge&colorA=0078d4&colorB=0078d4&label=VERSION)](https://marketplace.visualstudio.com/items?itemName=maheshshinde9100.shellreq-api-client)
+[![Installs](https://vsmarketplacebadges.dev/installs-short/maheshshinde9100.shellreq-api-client.svg?style=for-the-badge&colorA=0078d4&colorB=0078d4&label=INSTALLS)](https://marketplace.visualstudio.com/items?itemName=maheshshinde9100.shellreq-api-client)
+[![Rating](https://vsmarketplacebadges.dev/rating-short/maheshshinde9100.shellreq-api-client.svg?style=for-the-badge&colorA=0078d4&colorB=0078d4&label=RATING)](https://marketplace.visualstudio.com/items?itemName=maheshshinde9100.shellreq-api-client)
+[![License](https://img.shields.io/badge/license-MIT-blue?style=for-the-badge)](LICENSE)
 
-## Key Features
+**A native, blazing-fast API client — built right inside Visual Studio Code.**
 
-- **Optimized UI**: A sleek, high-performance interface in your sidebar for a seamless, lightweight workflow.
-- **Structured Grid Editors**: Manage Headers and Parameters efficiently with our native key-value editors.
-- **Smart Collections**: Organize your most-used requests into permanent collections for instant access.
-- **Instant History**: Zero-lag access to your recent requests with a detailed history view.
-- **Advanced Response Analysis**: 
-  - Lightning-fast JSON pretty-printing.
-  - Real-time metadata: Status codes, precise response times, and payload sizes.
-  - Comprehensive headers inspection.
-- **Full HTTP Support**: Complete support for `GET`, `POST`, `PUT`, `PATCH`, and `DELETE`.
-- **Ultra-Light Persistence**: Efficiently remembers your session even after restarting VS Code.
+*No context switching. No external apps. Just pure, focused API testing.*
+
+</div>
 
 ---
 
-## How to Use
+## Overview
 
-### 1. Open the Client
-Click the **ShellReq Lightning Bolt** icon in your VS Code Activity Bar (left sidebar).
+**ShellReq** is a lightweight, fully integrated API testing client for Visual Studio Code. It lives in your sidebar, speaks your workflow's language, and stays out of your way — giving you everything you need to test, inspect, and manage HTTP requests without ever leaving your editor.
 
-### 2. Configure Your Request
-- **Method**: Select the HTTP method from the dropdown.
-- **URL**: Enter your endpoint URL.
-- **Params/Headers**: Use the dedicated tabs to add key-value pairs.
-- **Body**: For payload-based requests, use the Body tab to enter your JSON.
+> Designed for developers who want speed, clarity, and zero clutter.
 
-### 3. Send & Analyze
-Click **SEND**. The response panel will instantly show your data, status code, and execution time.
+---
+
+## Features
+
+### High-Performance Sidebar UI
+A sleek, native sidebar panel that feels at home in VS Code. No tabs to juggle, no browser windows — just your requests, right where you code.
+
+### Smart Request Collections
+Organize frequently used requests into named collections with persistent storage. Access any saved request instantly, across sessions.
+
+### Zero-Lag Request History
+Automatically tracks every request you send. Revisit, reuse, or analyze past requests with a single click — no manual saving required.
+
+### Structured Key-Value Editors
+Dedicated grid-based editors for **Headers** and **Query Parameters** — clean, fast, and easy to manage without free-typing raw strings.
+
+### Advanced Response Analysis
+- **Pretty-printed JSON** with instant formatting
+- **Status code** display with semantic color indicators
+- **Precise response times** and **payload size** metadata
+- **Full response headers** inspection panel
+
+### Full HTTP Method Support
+Complete support for `GET`, `POST`, `PUT`, `PATCH`, and `DELETE` — covering your REST API workflows end to end.
+
+### Session Persistence
+ShellReq remembers your last request state, collections, and history even after restarting VS Code — ultra-lightweight and reliable.
+
+---
+
+## Getting Started
+
+### 1. Open ShellReq
+Click the **ShellReq** icon in the VS Code Activity Bar (left sidebar) to open the client panel.
+
+### 2. Build Your Request
+
+| Section | What to Do |
+|---|---|
+| **Method** | Select `GET`, `POST`, `PUT`, `PATCH`, or `DELETE` from the dropdown |
+| **URL** | Enter your endpoint URL |
+| **Params** | Add query parameters as key-value pairs in the Params tab |
+| **Headers** | Set request headers in the Headers tab |
+| **Body** | Enter your JSON payload in the Body tab (for `POST`, `PUT`, `PATCH`) |
+
+### 3. Send & Inspect
+Click **SEND**. The response panel instantly displays:
+- Response body (pretty-printed for JSON)
+- HTTP status code
+- Execution time
+- Response size
+- Response headers
 
 ### 4. Save to Collections
-Keep your workflow organized by clicking **SAVE** to add any request to your permanent collections.
+Click **SAVE** on any request to add it to your collections for reuse anytime.
 
 ---
 
 ## Commands
 
-- `ShellReq: Focus API Client` - Jump straight to the API sidebar.
-- `ShellReq: Run Request` - Quick command-palette based request execution.
+Access these via the **Command Palette** (`Ctrl+Shift+P` / `Cmd+Shift+P`):
+
+| Command | Description |
+|---|---|
+| `ShellReq: Focus API Client` | Opens and focuses the ShellReq sidebar panel |
+| `ShellReq: Run Request` | Executes the current request from the command palette |
+
+---
+
+## Requirements
+
+- Visual Studio Code `^1.85.0` or later
+- No external dependencies or runtime installations required
 
 ---
 
 ## Release Notes
 
-### 0.1.2
-- **Production Overhaul**: Fixed critical UI and state-syncing bugs for rock-solid performance.
-- **Improved Persistence**: Added bi-directional syncing between extension and sidebar.
-- **Icon Reliability**: Updated activity bar icon to a high-contrast, theme-aware native design.
-- **Security Headers**: Added CSP for robust Webview execution.
-- **Loading UX**: Added visual feedback (spinners) and disabled states during requests.
+### v0.1.2 — Production Stability Overhaul
+- **Critical Bug Fixes**: Resolved UI and state-syncing issues for rock-solid reliability
+- **Bi-directional Sync**: Improved state synchronization between the extension host and sidebar webview
+- **Icon Reliability**: Updated activity bar icon to a high-contrast, theme-aware design compatible with all VS Code themes
+- **Security Hardening**: Added Content Security Policy (CSP) headers for secure webview execution
+- **Loading UX**: Introduced visual spinners and disabled button states during active request execution
 
-### 0.1.1
+### v0.1.1
+- Minor stability improvements and internal refactoring
 
-### 0.1.0
-- **Official Release**: Native Sidebar API Client with full testing capabilities.
-- Optimized state management and core logic.
+### v0.1.0 — Official Release
+- Native Sidebar API Client with full HTTP testing capabilities
+- Optimized state management and core request engine
 
-### 0.0.3
-- **Sidebar Integration**: Introduced the streamlined sidebar-first experience.
-- **Persistent Storage**: High-performance storage for collections.
+### v0.0.3 — Sidebar Experience
+- Introduced the sidebar-first layout
+- Added persistent storage engine for collections and history
 
 ---
 
-**Built by [Mahesh Shinde](https://github.com/maheshshinde9100)**
+## Contributing
+
+Contributions, bug reports, and feature requests are welcome!
+
+1. Fork the [repository](https://github.com/maheshshinde9100/shellreq-api-client)
+2. Create a feature branch: `git checkout -b feature/your-feature`
+3. Commit your changes and open a Pull Request
+
+---
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
+
+---
+
+<div align="center">
+
+Built by [Mahesh Shinde](https://github.com/maheshshinde9100)
+
+[Marketplace](https://marketplace.visualstudio.com/items?itemName=maheshshinde9100.shellreq-api-client) · [GitHub](https://github.com/maheshshinde9100/shellreq-api-client) · [Report an Issue](https://github.com/maheshshinde9100/shellreq-api-client/issues)
+
+</div>
